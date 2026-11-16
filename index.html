@@ -739,9 +739,9 @@ async function load(){const c=conn();if(!c.url||!c.pin){showConnect();return}if(
   $('#st-sync').textContent='Loading…';
   try{DATA=await api();LS.set('cache',JSON.stringify(DATA));$('#st-connect').hidden=true;$('#st-main').hidden=false;$('#st-sync').textContent='Up to date';render()}
   catch(e){const cached=LS.get('cache');if(cached&&String(e.message)!=='Wrong PIN'){DATA=JSON.parse(cached);$('#st-main').hidden=false;$('#st-connect').hidden=true;$('#st-sync').textContent='Offline: showing last saved numbers';render()}
-    else{showConnect(e.message==='Wrong PIN'?'That PIN doesn’t match the one in the stock sheet.':'Couldn’t reach the stock sheet. Check the link and your internet.')}}}
+    else{showConnect(e.message==='Wrong PIN'?'That PIN doesn’t match the one in the stock sheet.':'Couldn’t reach the stock sheet. Check you pasted the Web app link (ends /exec), that it was deployed with access “Anyone”, and your internet.')}}}
 function showConnect(msg){$('#st-main').hidden=true;$('#st-connect').hidden=false;const c=conn();$('#st-url').value=c.url;$('#st-pin').value=c.pin;$('#st-who').value=c.who;$('#st-cmsg').textContent=msg||''}
-$('#st-go').onclick=()=>{LS.set('url',$('#st-url').value.trim());LS.set('pin',$('#st-pin').value.trim());LS.set('who',$('#st-who').value.trim());load()};
+$('#st-go').onclick=()=>{const u=$('#st-url').value.trim();if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(u)){$('#st-cmsg').textContent=/docs\.google\.com/.test(u)?'That’s the Google Sheet’s own link. Use the Web app link from Apps Script › Deploy instead (it starts https://script.google.com/macros/s/ and ends /exec).':'That doesn’t look like the Web app link. It starts https://script.google.com/macros/s/ and ends /exec.';return}LS.set('url',$('#st-url').value.trim());LS.set('pin',$('#st-pin').value.trim());LS.set('who',$('#st-who').value.trim());load()};
 $('#st-refresh').onclick=load;
 async function act(body,okMsg){$('#st-sync').textContent='Saving…';try{DATA=await api(body);LS.set('cache',JSON.stringify(DATA));$('#st-sync').textContent='Saved';render();if(okMsg)toast(okMsg)}
   catch(e){$('#st-sync').textContent='Not saved';toast('Not saved: '+e.message+'. Try again.',4000);load()}}
