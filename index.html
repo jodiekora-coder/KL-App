@@ -489,7 +489,8 @@ function renderTips(){const t=$('#tips');t.innerHTML='';for(let i=0;i<3;i++){con
   n.querySelector('input').addEventListener('input',e=>{plan.tips[i]=e.target.value;plan.tips=plan.tips.map(x=>x||'');changed(false)});t.appendChild(n)}}
 function renderLists(){let d=$('#dl-products');if(!d){d=document.createElement('datalist');d.id='dl-products';document.body.appendChild(d)}d.innerHTML=allProducts().map(p=>`<option value="${esc(p.name)}">`).join('');
   let s=$('#dl-steps');if(!s){s=document.createElement('datalist');s.id='dl-steps';document.body.appendChild(s)}s.innerHTML=STEPNAMES.map(x=>`<option value="${x}">`).join('')}
-function links(){try{return JSON.parse(localStorage.getItem('kl-rv-links')||'{}')}catch(e){return {}}}
+const REVIEW_DEFAULT='https://g.page/r/CY-yoifv1TPWEBM/review';
+function links(){let L={};try{L=JSON.parse(localStorage.getItem('kl-rv-links')||'{}')}catch(e){}if(!('review' in L))L.review=REVIEW_DEFAULT;return L}
 function renderMsg(){const fr=(plan.from||'').replace(/^Dr\s+/,'')||'Jodie';const L=links();
   let m=`Hi there, it was lovely to see you today. Here’s your personalised skin routine as a short video. Watch it once, then screenshot the shelves at the end so you have it handy in the bathroom.\n\nGo gently: one new product at a time, and if anything stings or irritates, stop and message me.`;
   if(L.book)m+=`\n\nWhen you’re ready for your review appointment, you can book it here:\n${L.book}`;
