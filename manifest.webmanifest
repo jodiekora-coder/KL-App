@@ -1,2 +1,2 @@
-{"name":"KL Routine Video Maker","short_name":"KL Routine","start_url":"./","scope":"./","display":"standalone","background_color":"#FFFBF2","theme_color":"#FFFBF2",
+{"name":"KL App","short_name":"KL App","start_url":"./","scope":"./","display":"standalone","background_color":"#FFFBF2","theme_color":"#FFFBF2",
 "icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
