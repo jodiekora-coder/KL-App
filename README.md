@@ -13,3 +13,7 @@ Tap-to-add invoice maker in the KL Invoices style. Numbers continue from KL-2026
 - The price list is NOT in this repo. It is loaded once on the iPad by pasting a private price list code, and can be edited in Settings.
 - Invoices made are logged on the device only (localStorage). Nothing is uploaded.
 - "Send or save PDF" opens the iPad share sheet (WhatsApp, Mail, Files).
+
+## Clinic policies (policies.html)
+
+Folders for each section of the KL Clinic Compliance Checklist. Structure only for now; documents are added later as blank templates. No client details ever go in this public repo.

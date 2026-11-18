@@ -1,0 +1,94 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="KL App">
+<meta name="theme-color" content="#FFFBF2"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest">
+<title>KL Clinic Policies</title>
+<style>
+@font-face{font-family:"Instrument Serif";font-weight:400;src:url(inv/instrument-serif.ttf) format("truetype")}
+:root{
+  --navy:#00167A;--gold:#FFC83C;--cream:#FFFBF2;
+  --bg:#FFFBF2;--panel:#FFFFFF;--ink:#0B1240;--muted:#5A6187;--line:#E6DFCC;--chip:#FFF3D1;--goldtext:#8A6400;--folder:#00167A;
+  --serif:"Instrument Serif",Georgia,serif;--sans:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--folder:#FFC83C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--folder:#FFC83C;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding:20px max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:20px}
+header{border-bottom:1px solid var(--line);padding-bottom:14px}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{font:400 clamp(34px,5vw,52px)/1 var(--serif);margin:6px 0 0}
+h1 em{font-style:normal;color:var(--goldtext)}
+.sub{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.folder{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;min-width:0}
+.folder:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.folder svg{width:44px;height:44px;color:var(--folder)}
+.folder b{display:block;font:400 22px/1.1 var(--serif)}
+.folder small{color:var(--muted);font-size:13px}
+.back{all:unset;cursor:pointer;color:var(--muted);font:600 13px var(--sans);letter-spacing:.06em}
+.back:focus-visible{outline:2px solid var(--gold)}
+.open h2{font:400 34px/1.05 var(--serif);margin:6px 0 4px}
+.open .sub{margin:0 0 6px}
+ul.docs{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+ul.docs li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+ul.docs li:first-child{border-top:0}
+.pill{font:600 11px var(--sans);letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--ink);white-space:nowrap}
+.note{font-size:13px;color:var(--muted)}
+.appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
+.appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
+.appnav span{background:var(--chip);color:var(--ink)}
+.appnav svg{width:24px;height:24px}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Kora Lawler Aesthetics</span>
+    <h1>Clinic <em>policies</em></h1>
+    <p class="sub">One folder for each part of the compliance checklist. Tap a folder to see what belongs in it.</p>
+  </header>
+  <main id="main"></main>
+  <p class="note">This app is public, so policies go here as blank templates only. Never add client names or records.</p>
+</div>
+
+<nav class="appnav" aria-label="App sections">
+  <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="M16 10l5-3v10l-5-3"/></svg>Routine videos</a>
+  <a href="invoice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/></svg>Invoices</a>
+  <a href="https://claude.ai/artifact/BAwKpEj5RCt8uSCCsynzKf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>Stock</a>
+  <span aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Policies</span>
+</nav>
+
+<script>
+(function(){
+// Folders match the sections of the KL Clinic Compliance Checklist. Documents are placeholders until added.
+const FOLDERS=[
+ {id:'medical-council',name:'Medical Council',about:'You, as a doctor',docs:['Registration and competence records','Indemnity certificate','Consent policy','Clinical records policy (kept 8 years)','Advertising and social media policy']},
+ {id:'medicines',name:'Medicines and devices',about:'HPRA',docs:['Consultation and prescribing policy','Medicines management and fridge log','Product traceability (batch and lot)','Emergency kit and complications protocol','Adverse reaction reporting']},
+ {id:'consent-forms',name:'Consent forms',about:'One per treatment',docs:['Anti-wrinkle','Jaw clenching and grinding','Excessive sweating','Migraine','SkinPen microneedling','Skin boosters','Polynucleotides','Dermal fillers','Hyaluronidase','Skin consultation','Photography and social media','Medical history form']},
+ {id:'data-protection',name:'Data protection',about:'GDPR and the DPC',docs:['Privacy notice','Record of processing','Data processing agreements','Data breach plan','Access request procedure']},
+ {id:'health-and-safety',name:'Health and safety',about:'Health and Safety Authority',docs:['Safety Statement and risk assessments','Sharps and needlestick procedure','Clinical waste records','Infection prevention and control','First aid and accident book','Fire safety']},
+ {id:'staff',name:'Staff and directors',about:'Employment law',docs:['Directors’ roles','Confidentiality agreement','Employment policies (for future staff)']},
+ {id:'insurance',name:'Insurance',about:'Cover and renewals',docs:['Medical indemnity','Public liability','Product liability','Employer’s liability','Contents and cyber']},
+ {id:'company-and-tax',name:'Company and tax',about:'CRO and Revenue',docs:['Business name registration','CRO annual returns','Beneficial ownership (RBO)','Corporation tax','VAT threshold tracking']},
+ {id:'consumer',name:'Skincare sales and consumer law',about:'Cosmetics and the Consumer Rights Act',docs:['Product labelling checks','Terms and conditions','Cancellation and refund policy','Gift voucher terms','Complaints policy']},
+ {id:'premises',name:'Premises and council',about:'Limerick City and County Council',docs:['Commercial rates','Music licence','Accessibility']}
+];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+const main=document.getElementById('main');
+function render(){
+  const id=location.hash.slice(1);const f=FOLDERS.find(x=>x.id===id);
+  if(!f){
+    main.innerHTML='<div class="grid">'+FOLDERS.map(x=>`<button class="folder" data-id="${x.id}">${icon}<span><b>${esc(x.name)}</b><small>${esc(x.about)} · ${x.docs.length} documents</small></span></button>`).join('')+'</div>';
+  }else{
+    main.innerHTML=`<section class="open"><button class="back" data-back>&larr; All folders</button><h2>${esc(f.name)}</h2><p class="sub">${esc(f.about)}</p><ul class="docs">${f.docs.map(d=>`<li><span>${esc(d)}</span><span class="pill">Not added yet</span></li>`).join('')}</ul></section>`;
+  }
+  scrollTo(0,0);
+}
+main.addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(b){location.hash=b.dataset.id;return}if(e.target.closest('[data-back]'))location.hash=''});
+addEventListener('hashchange',render);render();
+})();
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
+</body></html>
