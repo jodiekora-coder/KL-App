@@ -37,6 +37,30 @@ ul.docs li{display:flex;justify-content:space-between;gap:12px;align-items:cente
 ul.docs li:first-child{border-top:0}
 .pill{font:600 11px var(--sans);letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--ink);white-space:nowrap}
 .note{font-size:13px;color:var(--muted)}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:600 13px var(--sans);padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.btn.primary{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+:root[data-theme="dark"] .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.small{padding:6px 11px;font-size:12px}
+.btn.danger{color:#B3261E}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+ul.docs li .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill.done{background:var(--navy);color:var(--cream)}
+:root[data-theme="dark"] .pill.done{background:var(--gold);color:#000E52}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.done{background:var(--gold);color:#000E52}}
+.files{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px;width:100%}
+.file{display:flex;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.file .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.file small{color:var(--muted);font-size:12px;white-space:nowrap}
+.file img{width:36px;height:36px;object-fit:cover;border-radius:6px}
+.file .ic{width:36px;height:36px;border-radius:6px;background:var(--chip);display:grid;place-content:center;font:700 10px var(--sans)}
+ul.docs li.doc{flex-wrap:wrap}
+h3{font:400 22px/1.1 var(--serif);margin:18px 0 8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--cream);padding:10px 16px;border-radius:999px;font:600 13px var(--sans);z-index:30}
+.confirm{display:flex;gap:6px;align-items:center;font-size:13px}
+.backup{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.backup b{font:400 22px/1.1 var(--serif)}
 .appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
 .appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
 .appnav span{background:var(--chip);color:var(--ink)}
@@ -46,10 +70,12 @@ ul.docs li:first-child{border-top:0}
   <header>
     <span class="eyebrow">Kora Lawler Aesthetics</span>
     <h1>Clinic <em>policies</em></h1>
-    <p class="sub">One folder for each part of the compliance checklist. Tap a folder to see what belongs in it.</p>
+    <p class="sub">One folder for each part of the compliance checklist. Tap a folder, then upload a photo or PDF to keep it there.</p>
   </header>
   <main id="main"></main>
-  <p class="note">This app is public, so policies go here as blank templates only. Never add client names or records.</p>
+  <p class="note">Documents you upload stay on this iPad only. They are never sent anywhere or added to the public app code. Don’t upload anything with client names or records.</p>
+  <input type="file" id="up" accept="image/*,application/pdf,.pdf" multiple hidden>
+  <div id="toast" class="toast" hidden></div>
 </div>
 
 <nav class="appnav" aria-label="App sections">
@@ -76,18 +102,67 @@ const FOLDERS=[
 ];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
-const main=document.getElementById('main');
+const main=document.getElementById('main');const up=document.getElementById('up');
+// Files are stored on this device only, in IndexedDB. Nothing is uploaded anywhere.
+let db=null;
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('kl-policies',1);r.onupgradeneeded=()=>{const s=r.result.createObjectStore('files',{keyPath:'id'});s.createIndex('folder','folder')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+const tx=(mode)=>db.transaction('files',mode).objectStore('files');
+const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const allFiles=()=>db?req(tx('readonly').getAll()):Promise.resolve([]);
+const putFile=f=>req(tx('readwrite').put(f));
+const delFile=id=>req(tx('readwrite').delete(id));
+let files=[];let target=null;let confirmId=null;
+const urls=new Map();const urlFor=f=>{if(!urls.has(f.id))urls.set(f.id,URL.createObjectURL(f.blob));return urls.get(f.id)};
+const size=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const day=t=>new Date(t).toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
+function fileRow(f){const isImg=/^image\//.test(f.type);
+  return `<li class="file">${isImg?`<img src="${urlFor(f)}" alt="">`:`<span class="ic">PDF</span>`}<span class="nm">${esc(f.name)}<br><small>${day(f.added)} · ${size(f.size)}</small></span>
+  ${confirmId===f.id?`<span class="confirm">Delete? <button class="btn small danger" data-del-yes="${f.id}">Delete</button><button class="btn small" data-del-no>Keep</button></span>`:
+  `<a class="btn small" href="${urlFor(f)}" target="_blank" rel="noopener">Open</a><button class="btn small" data-save="${f.id}">Save copy</button><button class="btn small" data-del="${f.id}" aria-label="Delete ${esc(f.name)}">&times;</button>`}</li>`}
 function render(){
   const id=location.hash.slice(1);const f=FOLDERS.find(x=>x.id===id);
   if(!f){
-    main.innerHTML='<div class="grid">'+FOLDERS.map(x=>`<button class="folder" data-id="${x.id}">${icon}<span><b>${esc(x.name)}</b><small>${esc(x.about)} · ${x.docs.length} documents</small></span></button>`).join('')+'</div>';
+    main.innerHTML='<div class="grid">'+FOLDERS.map(x=>{const n=files.filter(y=>y.folder===x.id).length;return `<button class="folder" data-id="${x.id}">${icon}<span><b>${esc(x.name)}</b><small>${esc(x.about)} · ${n?n+' uploaded':'nothing uploaded yet'}</small></span></button>`}).join('')+'</div>'+
+    `<div class="backup" style="margin-top:16px"><b>Back up your documents</b><span class="note">Everything here lives on this iPad. Tap below to save a copy of every document to Files, iCloud Drive or Google Drive, so nothing is lost if you delete the app or change iPad.</span><div><button class="btn primary" data-backup>Back up all (${files.length})</button></div></div>`;
   }else{
-    main.innerHTML=`<section class="open"><button class="back" data-back>&larr; All folders</button><h2>${esc(f.name)}</h2><p class="sub">${esc(f.about)}</p><ul class="docs">${f.docs.map(d=>`<li><span>${esc(d)}</span><span class="pill">Not added yet</span></li>`).join('')}</ul></section>`;
+    const mine=files.filter(y=>y.folder===f.id);
+    main.innerHTML=`<section class="open"><button class="back" data-back>&larr; All folders</button><h2>${esc(f.name)}</h2><p class="sub">${esc(f.about)}</p>
+    <div class="bar"><button class="btn primary" data-up="">Upload photo or PDF</button>${mine.length?`<button class="btn" data-backup="${f.id}">Save copies of this folder</button>`:''}</div>
+    <ul class="docs">${f.docs.map(d=>{const got=mine.filter(y=>y.doc===d);return `<li class="doc"><span>${esc(d)}</span><span class="right">${got.length?'<span class="pill done">Added</span>':'<span class="pill">Not added yet</span>'}<button class="btn small" data-up="${esc(d)}">Upload</button></span>${got.length?`<ul class="files">${got.map(fileRow).join('')}</ul>`:''}</li>`}).join('')}</ul>
+    ${(()=>{const other=mine.filter(y=>!f.docs.includes(y.doc));return other.length?`<h3>Other documents</h3><ul class="files">${other.map(fileRow).join('')}</ul>`:''})()}
+    </section>`;
   }
-  scrollTo(0,0);
 }
-main.addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(b){location.hash=b.dataset.id;return}if(e.target.closest('[data-back]'))location.hash=''});
-addEventListener('hashchange',render);render();
+async function addFiles(list){
+  const id=location.hash.slice(1);if(!FOLDERS.some(x=>x.id===id)||!db)return;
+  let n=0;for(const fl of list){if(!(/^image\//.test(fl.type)||fl.type==='application/pdf'||/\.pdf$/i.test(fl.name)))continue;
+    const rec={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),folder:id,doc:target||'',name:fl.name||'Document',type:fl.type||'application/pdf',size:fl.size,added:Date.now(),blob:fl};
+    await putFile(rec);files.push(rec);n++}
+  render();toast(n?`Saved ${n} ${n===1?'document':'documents'} on this iPad`:'Only photos and PDFs can be added');
+}
+async function share(list){
+  if(!list.length){toast('Nothing to back up yet');return}
+  const fs=list.map(f=>new File([f.blob],f.name,{type:f.type}));
+  try{if(navigator.canShare&&navigator.canShare({files:fs})){await navigator.share({files:fs,title:'KL clinic policies'});return}}catch(e){if(e&&e.name==='AbortError')return}
+  // Fallback: open each one so it can be saved
+  list.forEach(f=>window.open(urlFor(f),'_blank'));
+}
+main.addEventListener('click',async e=>{
+  const t=e.target.closest('button,a');if(!t)return;
+  if(t.dataset.id){location.hash=t.dataset.id;return}
+  if(t.hasAttribute('data-back')){location.hash='';return}
+  if(t.hasAttribute('data-up')){target=t.dataset.up;up.click();return}
+  if(t.dataset.save){share(files.filter(f=>f.id===t.dataset.save));return}
+  if(t.hasAttribute('data-backup')){const fid=t.dataset.backup;share(fid?files.filter(f=>f.folder===fid):files);return}
+  if(t.dataset.del){confirmId=t.dataset.del;render();return}
+  if(t.hasAttribute('data-del-no')){confirmId=null;render();return}
+  if(t.dataset.delYes){await delFile(t.dataset.delYes);files=files.filter(f=>f.id!==t.dataset.delYes);confirmId=null;render();toast('Deleted');return}
+});
+up.addEventListener('change',e=>{const fs=[...e.target.files];e.target.value='';addFiles(fs)});
+addEventListener('hashchange',()=>{confirmId=null;render();scrollTo(0,0)});
+render();
+(async()=>{try{db=await openDB();files=await allFiles();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){toast('This browser can’t store documents')}render()})();
 })();
 </script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
