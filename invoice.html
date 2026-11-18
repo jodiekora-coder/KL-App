@@ -86,6 +86,14 @@ details.card[open] summary::after{content:"–"}
 .ed input{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:400 14px var(--sans);min-width:0;color:var(--ink)}
 .ed button{border:1px solid var(--line);background:transparent;border-radius:8px;height:36px;cursor:pointer;color:var(--muted)}
 textarea.code{width:100%;min-height:90px;font:12px/1.4 ui-monospace,Menlo,monospace;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px}
+@keyframes slide{from{margin-left:0}to{margin-left:60%}}
+#imp{border:0;border-radius:20px;padding:20px;width:min(860px,calc(100vw - 24px));max-height:calc(100vh - 40px);background:var(--panel);color:var(--ink)}
+#imp::backdrop{background:rgba(0,14,82,.45)}
+.ir{display:grid;grid-template-columns:28px minmax(0,1fr) 84px 150px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.ir input[type=text],.ir input[inputmode],.ir select{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px;font:400 14px var(--sans);color:var(--ink);min-width:0;width:100%}
+.ir input[type=checkbox]{width:22px;height:22px;accent-color:var(--navy)}
+.ir.off input[type=text]{opacity:.45;text-decoration:line-through}
+@media (max-width:600px){.ir{grid-template-columns:28px minmax(0,1fr) 76px}.ir select{grid-column:2/-1}}
 .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font:600 14px var(--sans);z-index:60;max-width:calc(100vw - 32px);text-align:center}
 /* finished invoice view */
 #view-done{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
@@ -147,8 +155,8 @@ textarea.code{width:100%;min-height:90px;font:12px/1.4 ui-monospace,Menlo,monosp
 
 <section id="setup" class="card" style="margin-top:20px" hidden>
   <h2>Load your price list</h2>
-  <p class="hint" style="margin:8px 0 14px;max-width:62ch">Your prices are kept on this iPad only, not in the app’s public code. Copy the price list code Claude sent you, then tap the button below. You only do this once.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="paste-setup">Paste price list</button><button class="btn" id="blank-setup">Start with an empty list</button></div>
+  <p class="hint" style="margin:8px 0 14px;max-width:62ch">Upload a photo or PDF of your treatment menu and skincare price list. The iPad reads it here, then you check the list before it’s saved. Your prices stay on this iPad only.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="btn primary" for="imp-file" style="display:inline-flex;align-items:center">Upload photo or PDF</label><button class="btn" id="paste-setup">Paste price list code</button><button class="btn" id="blank-setup">Start with an empty list</button></div>
   <textarea class="code" id="code-setup" placeholder="Or paste the code here by hand" style="margin-top:12px" aria-label="Price list code"></textarea>
   <p class="hint" id="setup-msg" style="margin-top:8px"></p>
 </section>
@@ -199,6 +207,7 @@ textarea.code{width:100%;min-height:90px;font:12px/1.4 ui-monospace,Menlo,monosp
       <button class="btn small primary" id="ed-save">Save price list</button>
       <button class="btn small" id="ed-copy">Copy price list code</button>
       <button class="btn small" id="ed-paste">Paste price list code</button>
+      <label class="btn small" for="imp-file" style="display:inline-flex;align-items:center">Add from photo or PDF</label>
     </div>
     <p class="hint" id="ed-msg" style="margin-top:8px"></p>
   </details>
@@ -220,6 +229,24 @@ textarea.code{width:100%;min-height:90px;font:12px/1.4 ui-monospace,Menlo,monosp
 </section>
 
 <div id="printout"></div>
+
+<input type="file" id="imp-file" accept="image/*,application/pdf,.pdf" multiple hidden>
+<dialog id="imp" aria-labelledby="imp-h">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 id="imp-h">Check your price list</h2><button class="x" id="imp-close" style="margin:0" aria-label="Close">Close</button></div>
+  <p class="hint" id="imp-msg" style="margin:6px 0 10px">Reading…</p>
+  <div class="bar" id="imp-bar" style="height:6px;background:var(--line);border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:40%;background:var(--gold);animation:slide 1.2s ease-in-out infinite alternate"></i></div>
+  <div id="imp-rows"></div>
+  <div id="imp-text" hidden style="margin-top:10px">
+    <label class="f">Or paste the text here<textarea class="code" id="imp-paste" placeholder="Anti-wrinkle, one area €180"></textarea></label>
+    <p class="hint" style="margin-top:6px">Tip: open the photo in Photos, press and hold on the text, tap Select All, then Copy, and paste it here.</p>
+    <button class="btn small" id="imp-read" style="margin-top:8px">Read this text</button>
+  </div>
+  <div id="imp-acts" hidden style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;position:sticky;bottom:-20px;background:var(--panel);padding:10px 0">
+    <button class="btn primary" id="imp-add">Add to my price list</button>
+    <button class="btn" id="imp-replace">Replace my whole list</button>
+    <button class="btn small" id="imp-showtext">Paste text instead</button>
+  </div>
+</dialog>
 
 <nav class="appnav" aria-label="App sections">
   <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="M16 10l5-3v10l-5-3"/></svg>Routine videos</a>
@@ -468,6 +495,59 @@ async function trySetup(t){try{const c=decodeCat(t);setCat(c);toast('Price list 
 $('paste-setup').addEventListener('click',async()=>{const t=await readClipboard();if(t)trySetup(t);else{$('setup-msg').textContent='Couldn’t read the clipboard. Paste the code into the box instead.';$('code-setup').focus()}});
 $('code-setup').addEventListener('input',()=>{if($('code-setup').value.includes('KLPRICES1:'))trySetup($('code-setup').value)});
 $('blank-setup').addEventListener('click',()=>{setCat({v:1,items:[]});$('set-card').open=true;$('set-card').scrollIntoView({behavior:'smooth'})});
+
+/* ---------- import from a photo or PDF (read on this iPad) ---------- */
+let impRows=[];let impLoaded=null;
+function loadImporter(){if(!impLoaded)impLoaded=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='inv/import.js';sc.onload=res;sc.onerror=()=>{impLoaded=null;rej(new Error('load'))};document.head.appendChild(sc)});return impLoaded}
+function impBusy(on,msg){$('imp-bar').hidden=!on;if(msg!=null)$('imp-msg').textContent=msg}
+function renderImp(){
+  $('imp-acts').hidden=!impRows.length;
+  if(!impRows.length){$('imp-rows').innerHTML='';return}
+  const on=impRows.filter(r=>r.on).length;
+  $('imp-h').textContent='Check your price list';
+  $('imp-msg').textContent='Found '+impRows.length+' items. Fix any names or prices, untick anything you don’t want, and check each one is in the right group. '+on+' ticked.';
+  $('imp-rows').innerHTML=impRows.map((r,i)=>`<div class="ir${r.on?'':' off'}"><input type="checkbox" data-ion="${i}" ${r.on?'checked':''} aria-label="Include"><input type="text" data-in="${i}" value="${esc(r.n)}" aria-label="Name"><input data-ip="${i}" inputmode="decimal" value="${r2(r.p)}" aria-label="Price in euro"><select data-ig="${i}" aria-label="Group">${GROUPS.map(g=>`<option value="${g.id}"${g.id===r.g?' selected':''}>${esc(g.name)}</option>`).join('')}</select></div>`).join('');
+}
+function addImpItems(items){
+  const have=new Set(impRows.map(r=>r.n.toLowerCase()));
+  items.forEach(x=>{if(have.has(x.n.toLowerCase()))return;have.add(x.n.toLowerCase());impRows.push({n:x.n,p:x.p,s:x.s||'',g:window.KLImport.guessGroup(x),on:true})});
+}
+async function importFiles(files){
+  if(!files||!files.length)return;
+  impRows=[];$('imp-text').hidden=true;$('imp-rows').innerHTML='';$('imp-acts').hidden=true;$('imp-h').textContent='Reading your price list';
+  if(!$('imp').open)$('imp').showModal();
+  impBusy(true,'Getting ready…');
+  try{await loadImporter()}catch(e){impBusy(false,'Couldn’t load the reader. Check the iPad is online the first time you use this, then try again.');return}
+  window.KLImport.onProgress=m=>{$('imp-msg').textContent=m};
+  for(const f of files){
+    impBusy(true,(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)?'Reading the PDF…':'Reading the photo… this can take up to a minute.'));
+    try{addImpItems(await window.KLImport.readFile(f))}catch(e){console.error(e)}
+  }
+  impBusy(false);
+  if(!impRows.length){$('imp-msg').textContent='I couldn’t find any prices in that. Try a clearer, straight-on photo in good light, or paste the text below.';$('imp-text').hidden=false}
+  renderImp();
+}
+$('imp-file').addEventListener('change',e=>{const fs=[...e.target.files];e.target.value='';importFiles(fs)});
+$('imp-close').addEventListener('click',()=>$('imp').close());
+$('imp-showtext').addEventListener('click',()=>{$('imp-text').hidden=false;$('imp-paste').focus()});
+$('imp-read').addEventListener('click',async()=>{try{await loadImporter()}catch(e){return}const items=window.KLImport.parseText($('imp-paste').value);addImpItems(items);$('imp-paste').value='';$('imp-text').hidden=!!impRows.length;if(!items.length)$('imp-msg').textContent='No prices found in that text. Each line needs a name and a € price.';else renderImp()});
+$('imp-rows').addEventListener('change',e=>{const el=e.target,d=el.dataset;
+  if(d.ion!=null){impRows[+d.ion].on=el.checked;renderImp()}
+  else if(d.in!=null)impRows[+d.in].n=el.value.trim();
+  else if(d.ip!=null){const v=parseFloat(el.value.replace(',','.'));if(!isNaN(v))impRows[+d.ip].p=r2(v)}
+  else if(d.ig!=null)impRows[+d.ig].g=el.value});
+function saveImport(replace){
+  const picked=impRows.filter(r=>r.on&&r.n).map(r=>({g:r.g,s:r.s,n:r.n,p:r.p}));
+  if(!picked.length){toast('Nothing ticked');return}
+  let items=replace?[]:((cat&&cat.items)||[]).map(x=>({...x}));let added=0,updated=0;
+  picked.forEach(x=>{const ex=items.find(y=>y.n.toLowerCase()===x.n.toLowerCase());if(ex){ex.p=x.p;ex.g=x.g;updated++}else{items.push(x);added++}});
+  // keep each group together, in the order read
+  items=GROUPS.flatMap(g=>items.filter(x=>x.g===g.id));
+  setCat({v:1,items});$('imp').close();
+  toast(replace?('Price list replaced: '+items.length+' items'):('Added '+added+(updated?', updated '+updated:'')+'. '+items.length+' items in total'));
+}
+$('imp-add').addEventListener('click',()=>saveImport(false));
+$('imp-replace').addEventListener('click',()=>saveImport(true));
 
 /* ---------- start ---------- */
 draft=get(K.draft,null)||blankDraft();
