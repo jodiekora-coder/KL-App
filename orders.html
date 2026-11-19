@@ -126,10 +126,10 @@ details[open]>summary::after{content:"Close"}
 
   <div id="setup" class="ask" hidden>
     <h3>One-time setup</h3>
-    <p class="note" style="margin:0">Copy the setup code Claude sent you, then tap “Paste and save”. It adds your account code, addresses, prescriber name and email, and prices. It stays on this iPad only.</p>
+    <p class="note" style="margin:0">Copy the setup code Claude sent you, then tap “Paste and save”. Or tap “Import file” and pick the setup file. It adds your account code, addresses, prescriber name and email, and prices. It stays on this iPad only.</p>
     <textarea id="setup-code" placeholder="Paste setup code here (starts with KLORDERS1:)"></textarea>
     <div class="row"><button class="btn primary" id="setup-paste" type="button">Paste and save</button><button class="btn" id="setup-load" type="button">Save what’s in the box</button>
-      <label class="btn" for="setup-file">Choose file</label><input type="file" id="setup-file" accept=".txt,text/plain" hidden><input type="file" id="photo-in" accept="image/*" hidden>
+      <label class="btn" for="setup-file">Import file</label><input type="file" id="setup-file" accept=".txt,text/plain" hidden><input type="file" id="photo-in" accept="image/*" hidden>
       <button class="btn" id="setup-skip" type="button">Skip, I’ll type them</button></div>
   </div>
 
@@ -213,7 +213,7 @@ details[open]>summary::after{content:"Close"}
     <h3 style="margin-top:18px">Your discounts</h3>
     <p class="note" style="margin:4px 0 0">Leave blank if you don’t know. A brand discount is used instead of the “everything” one for that brand. Only shown to you in the app, never on the order form.</p>
     <div class="disc" id="disc"></div>
-    <div class="row" style="margin-top:12px"><button class="btn small" id="reopen-setup" type="button">Paste a new setup code</button><button class="btn small" id="clear-photos" type="button">Remove my product photos</button></div>
+    <div class="row" style="margin-top:12px"><button class="btn small" id="reopen-setup" type="button">Paste a new setup code</button><label class="btn small" for="setup-file">Import setup file</label><button class="btn small" id="clear-photos" type="button">Remove my product photos</button></div>
   </details>
 
   <section class="card" id="history-card" hidden>
@@ -267,20 +267,37 @@ const eur=n=>'€'+n.toLocaleString('en-IE',{minimumFractionDigits:2,maximumFrac
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 // ---------- setup code ----------
-function applySetup(text){
-  text=(text||'').trim();const m=text.match(/KLORDERS1:([A-Za-z0-9+/=\s]+)/);
-  if(!m)throw new Error('That doesn’t look like a setup code. It should start with KLORDERS1:');
-  const bin=atob(m[1].replace(/\s+/g,''));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
-  const d=JSON.parse(new TextDecoder().decode(bytes));
-  for(const k of ['ac','hxDelivery','spDelivery','billAddr','prescriber','prescriberEmail','clinicName','clinicAddr','phone','email','spAccount'])if(d[k])S.settings[k]=d[k];
-  if(d.prices){for(const k of ['hx','sp'])if(d.prices[k])S.prices[k]=d.prices[k]}
-  S.setupDone=true;save();
+// Setup codes: KLORDERS1:<base64 JSON> or KLORDERS2:<base64 deflate-raw JSON>. Tolerant of line breaks,
+// spaces, smart characters and URL-safe base64, and several codes pasted together.
+async function decodeOne(ver,body){
+  let b=body.replace(/[^A-Za-z0-9+/_\-]/g,'').replace(/-/g,'+').replace(/_/g,'/');
+  b=b.slice(0,b.length-(b.length%4===1?1:0));while(b.length%4)b+='=';
+  const bytes=Uint8Array.from(atob(b),c=>c.charCodeAt(0));
+  let txt;
+  if(ver==='2'){const ds=new DecompressionStream('deflate-raw');txt=await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text()}
+  else txt=new TextDecoder().decode(bytes);
+  return JSON.parse(txt);
 }
-$('#setup-load').onclick=()=>{try{applySetup($('#setup-code').value);$('#setup-code').value='';$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details and prices are on this iPad.')}catch(e){toast(e.message||'Couldn’t read that code.')}};
+async function applySetup(text){
+  text=String(text||'').normalize('NFKC');
+  const parts=text.split(/(?=KLORDERS[12]\s*:)/).map(p=>p.match(/^KLORDERS([12])\s*:\s*([\s\S]*)$/)).filter(Boolean);
+  if(!parts.length)throw new Error('That doesn’t look like a setup code. It should start with KLORDERS.');
+  let ok=0,gotPrices=false,gotDetails=false;
+  for(const m of parts){
+    let d;try{d=await decodeOne(m[1],m[2])}catch(e){continue}
+    for(const k of ['ac','hxDelivery','spDelivery','billAddr','prescriber','prescriberEmail','clinicName','clinicAddr','phone','email','spAccount'])if(d[k]){S.settings[k]=d[k];gotDetails=true}
+    if(d.prices){for(const k of ['hx','sp'])if(d.prices[k]){S.prices[k]=d.prices[k];gotPrices=true}}
+    ok++}
+  if(!ok)throw new Error('The code seems to be cut short. Try “Import file” instead, or copy it again.');
+  S.setupDone=true;save();
+  return (gotDetails&&gotPrices)?'Saved. Your details and prices are on this iPad.':gotPrices?'Prices saved on this iPad.':'Your details are saved on this iPad.';
+}
+function afterSetup(msg){$('#setup-code').value='';$('#setup').hidden=true;fillFields();renderAll();toast(msg)}
+$('#setup-load').onclick=async()=>{try{afterSetup(await applySetup($('#setup-code').value))}catch(e){toast(e.message||'Couldn’t read that code.')}};
 $('#setup-paste').onclick=async()=>{let t='';try{t=await navigator.clipboard.readText()}catch(e){}
-  if(!t){$('#setup-code').focus();toast('Couldn’t read the clipboard. Long-press in the box, tap Paste, then Save.');return}
-  try{applySetup(t);$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details are on this iPad.')}catch(e){toast(e.message||'Couldn’t read that code.')}};
-$('#setup-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{applySetup(await f.text());$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details and prices are on this iPad.')}catch(err){toast(err.message||'Couldn’t read that file.')}e.target.value=''};
+  if(!t){$('#setup-code').focus();toast('Couldn’t read the clipboard. Long-press in the box, tap Paste, then tap Save.');return}
+  try{afterSetup(await applySetup(t))}catch(e){$('#setup-code').value=t;toast(e.message||'Couldn’t read that code.')}};
+$('#setup-file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{afterSetup(await applySetup(await f.text()))}catch(err){toast(err.message||'Couldn’t read that file.')}};
 $('#setup-skip').onclick=()=>{S.setupDone=true;save();$('#setup').hidden=true;$('#details').open=true};
 $('#reopen-setup').onclick=()=>{$('#setup').hidden=false;$('#setup').scrollIntoView({behavior:'smooth'})};
 $('#setup').hidden=!!S.setupDone&&!!S.settings.ac&&!!S.settings.prescriber;
