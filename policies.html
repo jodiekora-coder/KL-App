@@ -61,6 +61,20 @@ h3{font:400 22px/1.1 var(--serif);margin:18px 0 8px}
 .confirm{display:flex;gap:6px;align-items:center;font-size:13px}
 .backup{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
 .backup b{font:400 22px/1.1 var(--serif)}
+.covers{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:4px 0 14px;display:grid;gap:4px}
+.covers b.t{font:400 22px/1.1 var(--serif)}
+.cov{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.cov:first-of-type{border-top:0}
+.tick{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--gold);display:grid;place-content:center;flex:none;font:700 13px var(--sans)}
+.tick.on{background:var(--gold);color:#00167A}
+.cov .who{margin-left:auto;color:var(--muted);font-size:13px;text-align:right}
+.ask{background:var(--chip);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;display:grid;gap:8px;margin:0 0 14px}
+.ask b{font:400 22px/1.1 var(--serif)}
+.ask label{display:flex;gap:10px;align-items:center;font-size:15px}
+.ask input{width:20px;height:20px;accent-color:#00167A}
+.ask em{font-style:normal;color:var(--goldtext);font-size:12px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.chips span{font:600 11px var(--sans);padding:2px 8px;border-radius:999px;background:var(--chip)}
 .appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
 .appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
 .appnav span{background:var(--chip);color:var(--ink)}
@@ -100,6 +114,18 @@ const FOLDERS=[
  {id:'consumer',name:'Skincare sales and consumer law',about:'Cosmetics and the Consumer Rights Act',docs:['Product labelling checks','Terms and conditions','Cancellation and refund policy','Gift voucher terms','Complaints policy']},
  {id:'premises',name:'Premises and council',about:'Limerick City and County Council',docs:['Commercial rates','Music licence','Accessibility']}
 ];
+// Insurance covers. When a policy schedule is uploaded to the Insurance folder, Jo ticks which covers it includes
+// (PDF text is read on the iPad to suggest them; nothing is sent anywhere).
+const COVERS=[
+ {id:'indemnity',name:'Medical indemnity',kw:/indemnity|malpractice|medical professional/i},
+ {id:'public',name:'Public liability',kw:/public\s+liability/i},
+ {id:'products',name:'Products liability',kw:/products?\s+liability/i},
+ {id:'employers',name:'Employer\u2019s liability',kw:/employer[\u2019']?s?[\u2019']?\s+liability/i},
+ {id:'contents',name:'Contents and equipment',kw:/contents|equipment|all\s+risks/i},
+ {id:'interruption',name:'Business interruption',kw:/business\s+interruption|loss\s+of\s+(gross\s+)?(profit|income|revenue)/i},
+ {id:'cyber',name:'Cyber',kw:/cyber|data\s+breach/i}
+];
+const provider=f=>(f.doc||'Other').replace(/\s*\(.*$/,'');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
 const main=document.getElementById('main');const up=document.getElementById('up');
@@ -111,7 +137,7 @@ const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=
 const allFiles=()=>db?req(tx('readonly').getAll()):Promise.resolve([]);
 const putFile=f=>req(tx('readwrite').put(f));
 const delFile=id=>req(tx('readwrite').delete(id));
-let files=[];let target=null;let confirmId=null;
+let files=[];let target=null;let confirmId=null;let asking=null;// {ids:[], found:Set}
 const urls=new Map();const urlFor=f=>{if(!urls.has(f.id))urls.set(f.id,URL.createObjectURL(f.blob));return urls.get(f.id)};
 const size=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
 const day=t=>new Date(t).toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
@@ -119,16 +145,20 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hid
 function fileRow(f){const isImg=/^image\//.test(f.type);
   return `<li class="file">${isImg?`<img src="${urlFor(f)}" alt="">`:`<span class="ic">PDF</span>`}<span class="nm">${esc(f.name)}<br><small>${day(f.added)} · ${size(f.size)}</small></span>
   ${confirmId===f.id?`<span class="confirm">Delete? <button class="btn small danger" data-del-yes="${f.id}">Delete</button><button class="btn small" data-del-no>Keep</button></span>`:
-  `<a class="btn small" href="${urlFor(f)}" target="_blank" rel="noopener">Open</a><button class="btn small" data-save="${f.id}">Save copy</button><button class="btn small" data-del="${f.id}" aria-label="Delete ${esc(f.name)}">&times;</button>`}</li>`}
+  `<a class="btn small" href="${urlFor(f)}" target="_blank" rel="noopener">Open</a><button class="btn small" data-save="${f.id}">Save copy</button><button class="btn small" data-del="${f.id}" aria-label="Delete ${esc(f.name)}">&times;</button>`}${f.folder==='insurance'?`<span class="chips">${(f.covers||[]).map(c=>`<span>${esc((COVERS.find(x=>x.id===c)||{}).name||c)}</span>`).join('')}<button class="btn small" data-covers="${f.id}">${(f.covers||[]).length?'Edit covers':'Tick covers'}</button></span>`:''}</li>`}
+function coverBoard(){const ins=files.filter(f=>f.folder==='insurance');
+  return `<div class="covers"><b class="t">Cover checklist</b><span class="note">Ticks itself when you upload a schedule and confirm what it covers.</span>${COVERS.map(c=>{const by=[...new Set(ins.filter(f=>(f.covers||[]).includes(c.id)).map(provider))];return `<div class="cov"><span class="tick${by.length?' on':''}" aria-hidden="true">${by.length?'\u2713':''}</span><span>${esc(c.name)}</span><span class="who">${by.length?esc(by.join(', ')):'Not uploaded yet'}</span></div>`}).join('')}</div>`}
+function askPanel(){if(!asking)return'';const n=asking.ids.length;
+  return `<div class="ask"><b>Which covers does this schedule include?</b><span class="note">${asking.found.size?'I\u2019ve ticked what I found in the document. Check it, then save.':'Tick each cover listed on the schedule, then save.'}</span>${COVERS.map(c=>`<label><input type="checkbox" value="${c.id}"${asking.found.has(c.id)?' checked':''}> ${esc(c.name)}${asking.auto&&asking.auto.has(c.id)?' <em>found in document</em>':''}</label>`).join('')}<div class="bar"><button class="btn primary" data-cov-save>Save covers</button><button class="btn" data-cov-skip>Skip for now</button></div></div>`}
 function render(){
   const id=location.hash.slice(1);const f=FOLDERS.find(x=>x.id===id);
   if(!f){
-    main.innerHTML='<div class="grid">'+FOLDERS.map(x=>{const n=files.filter(y=>y.folder===x.id).length;return `<button class="folder" data-id="${x.id}">${icon}<span><b>${esc(x.name)}</b><small>${esc(x.about)} · ${n?n+' uploaded':'nothing uploaded yet'}</small></span></button>`}).join('')+'</div>'+
+    main.innerHTML='<div class="grid">'+FOLDERS.map(x=>{const n=files.filter(y=>y.folder===x.id).length;const extra=x.id==='insurance'?` · ${COVERS.filter(c=>files.some(f=>f.folder==='insurance'&&(f.covers||[]).includes(c.id))).length} of ${COVERS.length} covers`:'';return `<button class="folder" data-id="${x.id}">${icon}<span><b>${esc(x.name)}</b><small>${esc(x.about)} · ${n?n+' uploaded':'nothing uploaded yet'}${extra}</small></span></button>`}).join('')+'</div>'+
     `<div class="backup" style="margin-top:16px"><b>Back up your documents</b><span class="note">Everything here lives on this iPad. Tap below to save a copy of every document to Files, iCloud Drive or Google Drive, so nothing is lost if you delete the app or change iPad.</span><div><button class="btn primary" data-backup>Back up all (${files.length})</button></div></div>`;
   }else{
     const mine=files.filter(y=>y.folder===f.id);
     main.innerHTML=`<section class="open"><button class="back" data-back>&larr; All folders</button><h2>${esc(f.name)}</h2><p class="sub">${esc(f.about)}</p>
-    <div class="bar"><button class="btn primary" data-up="">Upload photo or PDF</button>${mine.length?`<button class="btn" data-backup="${f.id}">Save copies of this folder</button>`:''}</div>
+    <div class="bar"><button class="btn primary" data-up="">Upload photo or PDF</button>${mine.length?`<button class="btn" data-backup="${f.id}">Save copies of this folder</button>`:''}</div>${f.id==='insurance'?askPanel()+coverBoard():''}
     <ul class="docs">${f.docs.map(d=>{const got=mine.filter(y=>y.doc===d);return `<li class="doc"><span>${esc(d)}</span><span class="right">${got.length?'<span class="pill done">Added</span>':'<span class="pill">Not added yet</span>'}<button class="btn small" data-up="${esc(d)}">Upload</button></span>${got.length?`<ul class="files">${got.map(fileRow).join('')}</ul>`:''}</li>`}).join('')}</ul>
     ${(()=>{const other=mine.filter(y=>!f.docs.includes(y.doc));return other.length?`<h3>Other documents</h3><ul class="files">${other.map(fileRow).join('')}</ul>`:''})()}
     </section>`;
@@ -139,8 +169,17 @@ async function addFiles(list){
   let n=0;for(const fl of list){if(!(/^image\//.test(fl.type)||fl.type==='application/pdf'||/\.pdf$/i.test(fl.name)))continue;
     const rec={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),folder:id,doc:target||'',name:fl.name||'Document',type:fl.type||'application/pdf',size:fl.size,added:Date.now(),blob:fl};
     await putFile(rec);files.push(rec);n++}
+  if(n&&id==='insurance'){const recs=files.slice(-n);const found=new Set();for(const r of recs)for(const c of await detect(r))found.add(c);asking={ids:recs.map(r=>r.id),found,auto:new Set(found)}}
   render();toast(n?`Saved ${n} ${n===1?'document':'documents'} on this iPad`:'Only photos and PDFs can be added');
 }
+function loadScript(src){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
+let pdfReady=null;
+async function detect(rec){// reads PDF text on the iPad only; photos are ticked by hand
+  if(!(rec.type==='application/pdf'||/\.pdf$/i.test(rec.name)))return[];
+  try{pdfReady=pdfReady||loadScript('inv/pdf/pdf.min.js').then(()=>{pdfjsLib.GlobalWorkerOptions.workerSrc='inv/pdf/pdf.worker.min.js'});await pdfReady;
+    const doc=await pdfjsLib.getDocument({data:await rec.blob.arrayBuffer()}).promise;let text='';
+    for(let i=1;i<=Math.min(doc.numPages,15);i++){const c=await(await doc.getPage(i)).getTextContent();text+=' '+c.items.map(x=>x.str).join(' ')}
+    return COVERS.filter(c=>c.kw.test(text)).map(c=>c.id)}catch(e){return[]}}
 async function share(list){
   if(!list.length){toast('Nothing to back up yet');return}
   const fs=list.map(f=>new File([f.blob],f.name,{type:f.type}));
@@ -151,6 +190,9 @@ async function share(list){
 main.addEventListener('click',async e=>{
   const t=e.target.closest('button,a');if(!t)return;
   if(t.dataset.id){location.hash=t.dataset.id;return}
+  if(t.hasAttribute('data-cov-save')){const sel=[...main.querySelectorAll('.ask input:checked')].map(i=>i.value);for(const id of asking.ids){const f=files.find(x=>x.id===id);if(f){f.covers=sel;await putFile(f)}}asking=null;render();toast('Covers saved');return}
+  if(t.hasAttribute('data-cov-skip')){asking=null;render();return}
+  if(t.dataset.covers){const f=files.find(x=>x.id===t.dataset.covers);asking={ids:[f.id],found:new Set(f.covers||[]),auto:null};render();scrollTo(0,0);return}
   if(t.hasAttribute('data-back')){location.hash='';return}
   if(t.hasAttribute('data-up')){target=t.dataset.up;up.click();return}
   if(t.dataset.save){share(files.filter(f=>f.id===t.dataset.save));return}
@@ -160,7 +202,7 @@ main.addEventListener('click',async e=>{
   if(t.dataset.delYes){await delFile(t.dataset.delYes);files=files.filter(f=>f.id!==t.dataset.delYes);confirmId=null;render();toast('Deleted');return}
 });
 up.addEventListener('change',e=>{const fs=[...e.target.files];e.target.value='';addFiles(fs)});
-addEventListener('hashchange',()=>{confirmId=null;render();scrollTo(0,0)});
+addEventListener('hashchange',()=>{confirmId=null;asking=null;render();scrollTo(0,0)});
 render();
 (async()=>{try{db=await openDB();files=await allFiles();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){toast('This browser can’t store documents')}render()})();
 })();
