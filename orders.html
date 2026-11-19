@@ -113,9 +113,9 @@ details[open]>summary::after{content:"Close"}
 
   <div id="setup" class="ask" hidden>
     <h3>One-time setup</h3>
-    <p class="note" style="margin:0">Paste the setup code from Claude to add your account number, delivery address, prescriber name and your prices. It stays on this iPad only.</p>
+    <p class="note" style="margin:0">Copy the setup code Claude sent you, then tap “Paste and save”. It adds your account code, addresses, prescriber name and email, and prices. It stays on this iPad only.</p>
     <textarea id="setup-code" placeholder="Paste setup code here (starts with KLORDERS1:)"></textarea>
-    <div class="row"><button class="btn primary" id="setup-load" type="button">Save setup</button>
+    <div class="row"><button class="btn primary" id="setup-paste" type="button">Paste and save</button><button class="btn" id="setup-load" type="button">Save what’s in the box</button>
       <label class="btn" for="setup-file">Choose file</label><input type="file" id="setup-file" accept=".txt,text/plain" hidden>
       <button class="btn" id="setup-skip" type="button">Skip, I’ll type them</button></div>
   </div>
@@ -188,7 +188,9 @@ details[open]>summary::after{content:"Close"}
       <label>Clinic address<input type="text" data-k="clinicAddr"></label>
       <label>Health Exchange delivery address<input type="text" data-k="hxDelivery"></label>
       <label>SkinPen delivery address<input type="text" data-k="spDelivery"></label>
+      <label>Billing address (if a supplier asks)<input type="text" data-k="billAddr"></label>
       <label>Prescriber name<input type="text" data-k="prescriber"></label>
+      <label>Prescriber email<input type="email" data-k="prescriberEmail"></label>
       <label>Clinic phone<input type="text" data-k="phone" inputmode="tel"></label>
       <label>Clinic email (optional)<input type="email" data-k="email"></label>
       <label>SkinPen account number (optional)<input type="text" data-k="spAccount" autocomplete="off"></label>
@@ -217,7 +219,7 @@ details[open]>summary::after{content:"Close"}
 (function(){
 const $=s=>document.querySelector(s);
 const CLINIC_ADDR='Unit 20, Groody Neighbourhood Centre, Castletroy, Limerick V94 K588';
-const DEFAULTS={ac:'',clinicName:'The Kora Lawler Clinic Limited, trading as Kora Lawler Aesthetics',clinicAddr:CLINIC_ADDR,hxDelivery:CLINIC_ADDR,spDelivery:CLINIC_ADDR,prescriber:'',phone:'085 183 3428',email:'',spAccount:''};
+const DEFAULTS={ac:'',clinicName:'The Kora Lawler Clinic Limited, trading as Kora Lawler Aesthetics',clinicAddr:CLINIC_ADDR,hxDelivery:CLINIC_ADDR,spDelivery:CLINIC_ADDR,billAddr:'',prescriber:'',prescriberEmail:'',phone:'085 183 3428',email:'',spAccount:''};
 const CRO='809995';
 const SUPPLIERS={
   hx:{name:'Health Exchange',email:'orders@healthxchange.ie',
@@ -252,15 +254,18 @@ function applySetup(text){
   if(!m)throw new Error('That doesn’t look like a setup code. It should start with KLORDERS1:');
   const bin=atob(m[1].replace(/\s+/g,''));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
   const d=JSON.parse(new TextDecoder().decode(bytes));
-  for(const k of ['ac','hxDelivery','spDelivery','prescriber','clinicName','clinicAddr','phone','email','spAccount'])if(d[k])S.settings[k]=d[k];
+  for(const k of ['ac','hxDelivery','spDelivery','billAddr','prescriber','prescriberEmail','clinicName','clinicAddr','phone','email','spAccount'])if(d[k])S.settings[k]=d[k];
   if(d.prices){for(const k of ['hx','sp'])if(d.prices[k])S.prices[k]=d.prices[k]}
   S.setupDone=true;save();
 }
 $('#setup-load').onclick=()=>{try{applySetup($('#setup-code').value);$('#setup-code').value='';$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details and prices are on this iPad.')}catch(e){toast(e.message||'Couldn’t read that code.')}};
+$('#setup-paste').onclick=async()=>{let t='';try{t=await navigator.clipboard.readText()}catch(e){}
+  if(!t){$('#setup-code').focus();toast('Couldn’t read the clipboard. Long-press in the box, tap Paste, then Save.');return}
+  try{applySetup(t);$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details are on this iPad.')}catch(e){toast(e.message||'Couldn’t read that code.')}};
 $('#setup-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{applySetup(await f.text());$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details and prices are on this iPad.')}catch(err){toast(err.message||'Couldn’t read that file.')}e.target.value=''};
 $('#setup-skip').onclick=()=>{S.setupDone=true;save();$('#setup').hidden=true;$('#details').open=true};
 $('#reopen-setup').onclick=()=>{$('#setup').hidden=false;$('#setup').scrollIntoView({behavior:'smooth'})};
-$('#setup').hidden=!!S.setupDone;
+$('#setup').hidden=!!S.setupDone&&!!S.settings.ac&&!!S.settings.prescriber;
 
 // ---------- clinic details ----------
 function fillFields(){document.querySelectorAll('[data-k]').forEach(i=>{i.value=S.settings[i.dataset.k]||''})}
@@ -369,6 +374,7 @@ async function drawHX(L,sigC){
       x.font='600 26px Arial';x.textAlign='center';x.fillText(String(it.qty),1325,y);x.textAlign='left'});
     if(hasULM&&$('#ulm').checked){x.beginPath();x.arc(247,1677,8,0,Math.PI*2);x.fill()}
     x.font='28px "Helvetica Neue",Arial,sans-serif';x.fillText(st.prescriber||'',440,1942);
+    if(st.prescriberEmail){const nw=x.measureText(st.prescriber||'').width;x.font='24px "Helvetica Neue",Arial,sans-serif';x.fillText('Email: '+st.prescriberEmail,Math.max(940,440+nw+40),1942)}
     if(sigC){let h=54,w=sigC.width*h/sigC.height;if(w>460){w=460;h=sigC.height*w/sigC.width}x.drawImage(sigC,440,1996-h,w,h)}
     x.font='28px "Helvetica Neue",Arial,sans-serif';x.fillText(today(),300,2038);
     if(pages.length||L.length>ROWS){x.font='22px Arial';x.fillStyle='#5A6187';x.fillText('Page '+(p+1)+' of '+Math.ceil(L.length/ROWS),1400,2280)}
@@ -399,7 +405,8 @@ async function drawSP(L,reference){
     const fromL=[st.clinicName,st.clinicAddr,'CRO '+CRO];if(st.phone)fromL.push(st.phone);if(st.email)fromL.push(st.email);
     const y1=block('To',to,M,510,colW),y2=block('From',fromL,M+colW+80,510,colW);
     let y=Math.max(y1,y2)+30;
-    y=block('Deliver to',[st.spDelivery||st.clinicAddr],M,y,W-2*M)+40;
+    if(st.billAddr){const a=block('Deliver to',[st.spDelivery||st.clinicAddr],M,y,colW),b2=block('Bill to',[st.billAddr],M+colW+80,y,colW);y=Math.max(a,b2)+40}
+    else y=block('Deliver to',[st.spDelivery||st.clinicAddr],M,y,W-2*M)+40;
     // table
     const cx=[M,M+260,M+1060,W-M];const th=70;
     x.fillStyle=NAVY;x.fillRect(M,y,W-2*M,th);x.fillStyle='#FFFBF2';x.font='600 24px '+SANS;
@@ -416,7 +423,7 @@ async function drawSP(L,reference){
     const note=(S.spNote||'').trim();
     if(note&&p===n-1){x.fillStyle=MUTED;x.font='600 22px '+SANS;x.fillText('NOTE',M,y);x.fillStyle=INK;x.font='30px '+SANS;y+=46;for(const l of wrap(x,note,W-2*M)){x.fillText(l,M,y);y+=42}y+=20}
     if(p===n-1){x.fillStyle=INK;x.font='30px '+SANS;x.fillText('Please confirm this order and the delivery date by email. Thank you.',M,y+10);
-      if(st.prescriber){x.fillStyle=MUTED;x.font='600 22px '+SANS;x.fillText('ORDERED BY',M,y+90);x.fillStyle=NAVY;x.font='48px '+SERIF;x.fillText(st.prescriber,M,y+150)}}
+      if(st.prescriber){x.fillStyle=MUTED;x.font='600 22px '+SANS;x.fillText('ORDERED BY',M,y+90);x.fillStyle=NAVY;x.font='48px '+SERIF;x.fillText(st.prescriber,M,y+150);if(st.prescriberEmail){x.fillStyle=INK;x.font='28px '+SANS;x.fillText(st.prescriberEmail,M,y+196)}}}
     // footer
     x.fillStyle=NAVY;x.fillRect(0,H-150,W,150);x.fillStyle=GOLD;x.fillRect(0,H-150,W,5);
     x.fillStyle='#FFFBF2';x.textAlign='center';x.font='26px '+SANS;
