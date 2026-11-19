@@ -80,7 +80,20 @@ fieldset{border:0;margin:12px 0 0;padding:0}
 legend{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .note{font-size:13px;color:var(--muted)}
 .warn{font-size:13px;background:var(--chip);border-left:3px solid var(--gold);padding:8px 10px;border-radius:6px}
-.total{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.total{display:grid;gap:4px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.total div{display:flex;justify-content:space-between;gap:10px}
+.total .grand{color:var(--ink);font-size:16px;font-weight:600;border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.total .fine{font-size:12px}
+.price{color:var(--ink);font-weight:500}
+.was{text-decoration:line-through;opacity:.7}
+.thumb{all:unset;cursor:pointer;flex:none;width:48px;height:48px;border-radius:10px;border:1px solid var(--line);background:var(--chip);display:grid;place-content:center;overflow:hidden;color:var(--accent);position:relative}
+.thumb img{width:48px;height:48px;object-fit:cover;display:block}
+.thumb svg{width:24px;height:24px}
+.thumb:focus-visible{outline:2px solid var(--gold)}
+.thumb .plus{position:absolute;right:2px;bottom:1px;font:700 11px var(--sans);color:var(--muted)}
+.disc{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px 12px;margin-top:8px}
+.disc label{display:flex;justify-content:space-between;align-items:center;gap:8px;font:500 14px var(--sans);color:var(--ink)}
+.disc input{width:76px;text-align:right}
 .sig{border:1px dashed var(--muted);border-radius:10px;background:#fff;touch-action:none;width:100%;height:120px;display:block}
 .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .fields label{display:grid;gap:4px;font:600 12px var(--sans);color:var(--muted)}
@@ -116,7 +129,7 @@ details[open]>summary::after{content:"Close"}
     <p class="note" style="margin:0">Copy the setup code Claude sent you, then tap “Paste and save”. It adds your account code, addresses, prescriber name and email, and prices. It stays on this iPad only.</p>
     <textarea id="setup-code" placeholder="Paste setup code here (starts with KLORDERS1:)"></textarea>
     <div class="row"><button class="btn primary" id="setup-paste" type="button">Paste and save</button><button class="btn" id="setup-load" type="button">Save what’s in the box</button>
-      <label class="btn" for="setup-file">Choose file</label><input type="file" id="setup-file" accept=".txt,text/plain" hidden>
+      <label class="btn" for="setup-file">Choose file</label><input type="file" id="setup-file" accept=".txt,text/plain" hidden><input type="file" id="photo-in" accept="image/*" hidden>
       <button class="btn" id="setup-skip" type="button">Skip, I’ll type them</button></div>
   </div>
 
@@ -197,7 +210,10 @@ details[open]>summary::after{content:"Close"}
       <label>Clinic email (optional)<input type="email" data-k="email"></label>
       <label>SkinPen account number (optional)<input type="text" data-k="spAccount" autocomplete="off"></label>
     </div>
-    <div class="row" style="margin-top:12px"><button class="btn small" id="reopen-setup" type="button">Paste a new setup code</button></div>
+    <h3 style="margin-top:18px">Your discounts</h3>
+    <p class="note" style="margin:4px 0 0">Leave blank if you don’t know. A brand discount is used instead of the “everything” one for that brand. Only shown to you in the app, never on the order form.</p>
+    <div class="disc" id="disc"></div>
+    <div class="row" style="margin-top:12px"><button class="btn small" id="reopen-setup" type="button">Paste a new setup code</button><button class="btn small" id="clear-photos" type="button">Remove my product photos</button></div>
   </details>
 
   <section class="card" id="history-card" hidden>
@@ -294,6 +310,58 @@ function tags(it){let t='';if(it.k==='POM')t+='<span class="tag POM">Prescriptio
 function stepper(code){const q=S.drafts[sup][code]||0;
   return q?`<div class="step"><button type="button" data-d="-1" data-c="${esc(code)}" aria-label="One less">−</button><output>${q}</output><button type="button" data-d="1" data-c="${esc(code)}" aria-label="One more">+</button></div>`
           :`<div class="step"><button type="button" class="add" data-d="1" data-c="${esc(code)}">Add</button></div>`}
+// ---------- prices, VAT, discounts ----------
+const VAT=0.23;
+function brandOf(it){
+  if(sup==='sp')return 'SkinPen';
+  const g=it.group,c=it.code;
+  if(g==='Fillers: AbbVie'||/^VIS\d+ALL/.test(c))return 'Allergan (AbbVie)';
+  if(/^GAL/.test(c)||g==='Fillers: Galderma'||g==='Alastin skincare')return 'Galderma';
+  if(g.includes(':'))return g.replace(/^Fillers: |^Polynucleotides: /,'').split(':')[0];
+  if(g==='HA Derma (Profhilo)')return 'HA Derma (Profhilo)';
+  if(g==='Heliocare SPF')return 'Heliocare';
+  return '';
+}
+function brands(){const b=new Set();for(const it of SUPPLIERS[sup].items){const x=brandOf(it);if(x)b.add(x)}return [...b].sort()}
+S.discounts=S.discounts||{hx:{},sp:{}};
+function discPct(it){const D=S.discounts[sup]||{};const b=brandOf(it);const v=(b&&D[b]!==''&&D[b]!=null)?D[b]:D['*'];const n=parseFloat(v);return isFinite(n)&&n>0&&n<100?n:0}
+const vatRate=it=>(sup==='hx'&&/\b(tabs?|tablets?|caps|capsules?)\b/i.test(it.desc))?0:VAT; // Health Exchange: no VAT on oral medicines
+function unit(it){const p=(S.prices[sup]||{})[it.code];if(p==null)return null;const d=discPct(it);const net=p*(1-d/100);return{list:p,d,net,inc:net*(1+vatRate(it))}}
+function priceHTML(it){const u=unit(it);if(!u)return '';
+  return `<span class="price">${u.d?`<span class="was">${eur(u.list)}</span> `:''}${eur(u.net)} ex VAT · ${eur(u.inc)} inc VAT${u.d?` (${u.d}% off)`:''}</span>`}
+function renderDisc(){const D=S.discounts[sup]=S.discounts[sup]||{};
+  const rows=[['*',sup==='hx'?'Everything from Health Exchange':'Everything from SkinPen'],...(sup==='hx'?brands().map(b=>[b,b]):[])];
+  $('#disc').innerHTML=rows.map(([k,t])=>`<label>${esc(t)}<span><input type="text" inputmode="decimal" data-disc="${esc(k)}" value="${esc(D[k]||'')}" placeholder="–" aria-label="${esc(t)} discount percent"> %</span></label>`).join('')}
+$('#disc').addEventListener('input',e=>{const i=e.target.closest('[data-disc]');if(!i)return;S.discounts[sup][i.dataset.disc]=i.value.replace(/[^\d.]/g,'');save();renderList();renderOrder()});
+
+// ---------- product photos (taken by Jo, kept on this iPad) ----------
+const PH={};let phDB=null;
+function db(){return phDB||(phDB=new Promise((res,rej)=>{const r=indexedDB.open('kl-order-photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('p');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))}
+async function phAll(){try{const d=await db();await new Promise(res=>{const tx=d.transaction('p');const st=tx.objectStore('p');const rq=st.openCursor();rq.onsuccess=()=>{const c=rq.result;if(c){PH[c.key]=c.value;c.continue()}else res()};rq.onerror=res})}catch(e){}}
+async function phPut(k,v){PH[k]=v;try{const d=await db();d.transaction('p','readwrite').objectStore('p').put(v,k)}catch(e){}}
+const ICONS={
+ vial:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 3h6M10 3v3h4V3M8 8h8l-1 13H9z"/><path d="M8.5 13h7"/></svg>',
+ syringe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 3l3 3M16.5 4.5l3 3M19 6l-9.5 9.5-3-3L16 3M6.5 12.5l-3 3 2 2 3-3M4.5 17.5L3 21"/></svg>',
+ tube:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h10l-1 15H8z"/><path d="M9 18h6v3H9zM9 8h6"/></svg>',
+ box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>',
+ pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3l6 6-10 10H5v-6z"/><path d="M12 6l6 6"/></svg>'};
+function iconFor(it){const g=it.group+' '+it.desc;
+  if(sup==='sp')return /Kit/.test(it.desc)?ICONS.pen:ICONS.box;
+  if(/Cannula|Syring|Needle/i.test(g))return ICONS.syringe;
+  if(/Botulin|Filler|Polynuc|Anaesth|inject|Weight|Profhilo|Vial|Amps|Pen\b/i.test(g))return ICONS.vial;
+  if(/consumable|Gloves|Threads/i.test(g))return ICONS.box;
+  return ICONS.tube}
+function thumb(it){const k=sup+':'+it.code;const p=PH[k];
+  return `<button type="button" class="thumb" data-photo="${esc(it.code)}" aria-label="${p?'Change':'Add'} photo of ${esc(it.desc)}">${p?`<img src="${p}" alt="">`:iconFor(it)+'<span class="plus">+</span>'}</button>`}
+let photoFor=null;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-photo]');if(!b)return;photoFor=sup+':'+b.dataset.photo;$('#photo-in').click()});
+$('#photo-in').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!photoFor)return;
+  try{const url=URL.createObjectURL(f);const im=await loadImg(url);URL.revokeObjectURL(url);
+    const S2=160,c=document.createElement('canvas');c.width=c.height=S2;const x=c.getContext('2d');const sc=Math.max(S2/im.width,S2/im.height);
+    x.drawImage(im,(S2-im.width*sc)/2,(S2-im.height*sc)/2,im.width*sc,im.height*sc);
+    await phPut(photoFor,c.toDataURL('image/jpeg',0.8));renderList();renderOrder();toast('Photo saved on this iPad.')}catch(err){toast('Couldn’t use that photo.')}};
+$('#clear-photos').onclick=async()=>{for(const k in PH)delete PH[k];try{const d=await db();d.transaction('p','readwrite').objectStore('p').clear()}catch(e){}renderList();renderOrder();toast('Product photos removed.')};
+
 function renderList(){
   const q=$('#q').value.trim().toLowerCase();const g=$('#grp').value;const items=SUPPLIERS[sup].items;const ob=orderedBefore();
   let rows=items.filter(it=>{
@@ -303,8 +371,8 @@ function renderList(){
   if(!rows.length)html='<li class="empty">Nothing matches. Try part of the name or the code.</li>';
   for(const it of rows.slice(0,300)){
     if((q||g==='__all'||g==='__usual')&&it.group!==last&&SUPPLIERS[sup].items.length>8){html+=`<li class="grp">${esc(it.group)}</li>`;last=it.group}
-    const pr=P[it.code]!=null?`<span>${eur(P[it.code])} ex VAT</span>`:'';
-    html+=`<li><div class="it"><b>${esc(it.desc)}</b><small><span>${esc(it.code)}</span>${it.pack?`<span>${esc(it.pack)}</span>`:''}${pr}${tags(it)}</small></div>${stepper(it.code)}</li>`}
+    const pr=priceHTML(it);
+    html+=`<li>${thumb(it)}<div class="it"><b>${esc(it.desc)}</b><small><span>${esc(it.code)}</span>${it.pack?`<span>${esc(it.pack)}</span>`:''}${tags(it)}</small>${pr?`<small>${pr}</small>`:''}</div>${stepper(it.code)}</li>`}
   if(rows.length>300)html+='<li class="empty">Showing the first 300. Search to narrow it down.</li>';
   $('#list').innerHTML=html;
 }
@@ -316,10 +384,25 @@ $('#q').addEventListener('input',renderList);$('#grp').addEventListener('change'
 function lines(){const D=S.drafts[sup];return Object.keys(D).filter(c=>byCode[sup][c]&&D[c]>0).map(c=>({...byCode[sup][c],qty:D[c]}))}
 function renderOrder(){
   const L=lines();const P=S.prices[sup]||{};
-  $('#order').innerHTML=L.length?L.map(it=>`<li><div class="it"><b>${esc(it.desc)}</b><small><span>${esc(it.code)}</span>${tags(it)}</small></div>${stepper(it.code)}</li>`).join(''):'<li class="empty">Nothing added yet. Tap Add next to a product.</li>';
-  let tot=0,known=true;for(const it of L){if(P[it.code]==null)known=false;else tot+=P[it.code]*it.qty}
+  $('#order').innerHTML=L.length?L.map(it=>{const u=unit(it);
+    return `<li>${thumb(it)}<div class="it"><b>${esc(it.desc)}</b><small><span>${esc(it.code)}</span>${tags(it)}</small>${u?`<small><span class="price">${it.qty} × ${eur(u.net)} = ${eur(u.net*it.qty)} ex VAT · ${eur(u.inc*it.qty)} inc VAT</span></small>`:''}</div>${stepper(it.code)}</li>`}).join(''):'<li class="empty">Nothing added yet. Tap Add next to a product.</li>';
+  let list=0,net=0,vat=0,missing=0;
+  for(const it of L){const u=unit(it);if(!u){missing++;continue}list+=u.list*it.qty;net+=u.net*it.qty;vat+=(u.inc-u.net)*it.qty}
+  let del=null,delNote='';
+  if(sup==='hx'){const cold=L.some(i=>i.cold),obagi=L.length&&L.every(i=>/^Obagi/.test(i.group));
+    if(S.svc==='collect')del=0;else if(S.svc==='same')del=37;
+    else if(net>=3000||(obagi&&net>=500)){del=0;delNote=' (free over '+(obagi&&net<3000?'€500 on Obagi':'€3,000')+')'}
+    else del=cold?15.5:11;
+    if(del){vat+=del*VAT}}
+  else delNote=' (postage added by SkinPen)';
+  const total=net+(del||0)+vat;const disc=list-net;
   $('#tot').hidden=!L.length||!Object.keys(P).length;
-  $('#tot').innerHTML=`<span>Estimated cost${known?'':' (some prices missing)'}</span><b>${eur(tot)} ex VAT</b>`;
+  $('#tot').innerHTML=`<div><span>Products ex VAT</span><span>${eur(list)}</span></div>`+
+    (disc>0.004?`<div><span>Your discount</span><span>−${eur(disc)}</span></div>`:'')+
+    `<div><span>Delivery${delNote}</span><span>${del==null?'–':eur(del)}</span></div>`+
+    `<div><span>VAT (23%)</span><span>${eur(vat)}</span></div>`+
+    `<div class="grand"><span>Total inc VAT</span><span>${eur(total)}</span></div>`+
+    `<div class="fine">Estimate from your price list${missing?`. ${missing} item${missing>1?'s have':' has'} no price yet`:''}. Not shown on the order form.</div>`;
   const isHx=sup==='hx';$('#hx-opts').hidden=!isHx;$('#sp-opts').hidden=isHx;
   const hasULM=L.some(i=>i.k==='ULM'),hasRx=L.some(i=>i.k==='POM'||i.k==='ULM');
   $('#ulm-box').hidden=!hasULM;if(hasULM&&!S.ulmTouched)$('#ulm').checked=true;
@@ -327,7 +410,7 @@ function renderOrder(){
   $('#make').disabled=!L.length;
   if(isHx)sizeSig();
 }
-document.querySelectorAll('input[name=svc]').forEach(r=>{r.checked=r.value===S.svc;r.onchange=()=>{S.svc=r.value;save()}});
+document.querySelectorAll('input[name=svc]').forEach(r=>{r.checked=r.value===S.svc;r.onchange=()=>{S.svc=r.value;save();renderOrder()}});
 $('#ulm').onchange=()=>{S.ulmTouched=true};
 $('#sp-note').value=S.spNote||'';$('#sp-note').oninput=e=>{S.spNote=e.target.value;save()};
 $('#clear').onclick=()=>{if(!lines().length)return;S.drafts[sup]={};S.ulmTouched=false;save();renderAll();$('#result').hidden=true;toast('Order cleared.')};
@@ -505,9 +588,9 @@ function renderHist(){const H=S.history;$('#history-card').hidden=!H.length;
 $('#hist').addEventListener('click',e=>{const b=e.target.closest('[data-again]');if(!b)return;const h=S.history[+b.dataset.again];
   sup=h.sup;S.sup=sup;S.drafts[sup]={};for(const [c,q] of h.items)S.drafts[sup][c]=q;save();renderAll();window.scrollTo({top:0,behavior:'smooth'});toast('Copied into this order. Change amounts if you need to.')});
 
-function renderAll(){document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sup===sup));renderGroups();renderList();renderOrder();renderHist()}
+function renderAll(){renderDisc();document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sup===sup));renderGroups();renderList();renderOrder();renderHist()}
 addEventListener('resize',()=>{if(sup==='hx')sizeSig()});
-renderAll();
+renderAll();phAll().then(()=>{if(Object.keys(PH).length){renderList();renderOrder()}});
 })();
 </script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
