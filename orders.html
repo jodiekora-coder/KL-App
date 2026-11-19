@@ -162,6 +162,7 @@ details[open]>summary::after{content:"Close"}
 
       <div class="row" style="margin-top:14px">
         <button class="btn primary" id="make" type="button">Make order form</button>
+        <button class="btn" id="copy-msg" type="button">Copy email</button>
         <button class="btn" id="clear" type="button">Clear order</button>
       </div>
       <p class="note" id="status" role="status"></p>
@@ -174,6 +175,7 @@ details[open]>summary::after{content:"Close"}
     <div class="row">
       <button class="btn primary" id="send" type="button">Send or save PDF</button>
       <button class="btn" id="copy-email" type="button"></button>
+      <button class="btn" id="copy-msg2" type="button">Copy email message</button>
       <button class="btn" id="mark" type="button">Mark as ordered</button>
     </div>
     <p class="note" id="send-note"></p>
@@ -472,15 +474,26 @@ $('#make').onclick=async()=>{
     made={file:new File([blob],name,{type:'application/pdf'}),sup,items:L.map(i=>[i.code,i.qty]),ref:reference};
     $('#prev').src=pages[0].toDataURL('image/jpeg',0.85);
     $('#copy-email').textContent='Copy '+SUPPLIERS[sup].email;
-    $('#send-note').textContent='Send it to '+SUPPLIERS[sup].email+'. Tap “Send or save PDF”, choose Mail, then paste the address.'+(pages.length>1?' This order runs to '+pages.length+' pages.':'');
+    $('#send-note').textContent='Send it to '+SUPPLIERS[sup].email+'. Tap “Send or save PDF” and choose Mail. The message is usually filled in for you. If not, tap “Copy email message” and paste it in.'+(pages.length>1?' This order runs to '+pages.length+' pages.':'');
     $('#result').hidden=false;$('#result').scrollIntoView({behavior:'smooth'});$('#status').textContent='';
   }catch(e){console.error(e);$('#status').textContent='Couldn’t make the form. Please try again.'}
   finally{$('#make').disabled=false}
 };
 $('#send').onclick=async()=>{if(!made)return;const f=made.file;
-  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:f.name});toast('Done. Tap “Mark as ordered” once it’s sent.');return}}
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){const t=emailText(made.sup);await navigator.share({files:[f],title:t.subject,text:t.body});toast('Done. Tap “Mark as ordered” once it’s sent.');return}}
   catch(e){if(e&&e.name==='AbortError')return}
   const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);toast('PDF downloaded. On the iPad it goes to Files › Downloads.')};
+function emailText(s){const st=S.settings;const hx=s==='hx';
+  const subject='Order request – Kora Lawler Aesthetics'+(hx&&st.ac?' ('+st.ac+')':'');
+  const body=['Dear '+(hx?'Health Exchange Orders':'Crown Aesthetics')+',','',
+    'Please find attached the order request form for my clinic, Kora Lawler Aesthetics.'+(hx&&st.ac?' Our account code is '+st.ac+'.':''),'',
+    'Please contact me to arrange payment or to confirm the order.','',
+    'Sincerely,',st.prescriber||'Dr Jodie'].join('\n');
+  return{subject,body,full:'Subject: '+subject+'\n\n'+body}}
+async function copyMsg(){const t=emailText(sup);
+  try{await navigator.clipboard.writeText(t.full);toast('Email copied. Paste it into your email.')}
+  catch(e){toast('Couldn’t copy. Please try again.')}}
+$('#copy-msg').onclick=copyMsg;$('#copy-msg2').onclick=copyMsg;
 $('#copy-email').onclick=async()=>{const e=SUPPLIERS[sup].email;try{await navigator.clipboard.writeText(e);toast('Copied '+e)}catch(err){toast(e)}};
 $('#mark').onclick=()=>{if(!made)return;S.history.unshift({sup:made.sup,at:Date.now(),items:made.items,ref:made.ref});S.history=S.history.slice(0,40);
   S.drafts[made.sup]={};S.ulmTouched=false;save();made=null;$('#result').hidden=true;renderAll();toast('Saved to past orders. Remember to add it to the stock list when it arrives.')};
