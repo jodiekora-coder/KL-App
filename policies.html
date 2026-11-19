@@ -1,0 +1,211 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="KL App">
+<meta name="theme-color" content="#FFFBF2"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest">
+<title>KL Clinic Policies</title>
+<style>
+@font-face{font-family:"Instrument Serif";font-weight:400;src:url(inv/instrument-serif.ttf) format("truetype")}
+:root{
+  --navy:#00167A;--gold:#FFC83C;--cream:#FFFBF2;
+  --bg:#FFFBF2;--panel:#FFFFFF;--ink:#0B1240;--muted:#5A6187;--line:#E6DFCC;--chip:#FFF3D1;--goldtext:#8A6400;--folder:#00167A;
+  --serif:"Instrument Serif",Georgia,serif;--sans:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--folder:#FFC83C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--folder:#FFC83C;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding:20px max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:20px}
+header{border-bottom:1px solid var(--line);padding-bottom:14px}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{font:400 clamp(34px,5vw,52px)/1 var(--serif);margin:6px 0 0}
+h1 em{font-style:normal;color:var(--goldtext)}
+.sub{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.folder{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;min-width:0}
+.folder:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.folder svg{width:44px;height:44px;color:var(--folder)}
+.folder b{display:block;font:400 22px/1.1 var(--serif)}
+.folder small{color:var(--muted);font-size:13px}
+.back{all:unset;cursor:pointer;color:var(--muted);font:600 13px var(--sans);letter-spacing:.06em}
+.back:focus-visible{outline:2px solid var(--gold)}
+.open h2{font:400 34px/1.05 var(--serif);margin:6px 0 4px}
+.open .sub{margin:0 0 6px}
+ul.docs{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+ul.docs li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+ul.docs li:first-child{border-top:0}
+.pill{font:600 11px var(--sans);letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--ink);white-space:nowrap}
+.note{font-size:13px;color:var(--muted)}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:600 13px var(--sans);padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.btn.primary{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+:root[data-theme="dark"] .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.small{padding:6px 11px;font-size:12px}
+.btn.danger{color:#B3261E}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+ul.docs li .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill.done{background:var(--navy);color:var(--cream)}
+:root[data-theme="dark"] .pill.done{background:var(--gold);color:#000E52}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.done{background:var(--gold);color:#000E52}}
+.files{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px;width:100%}
+.file{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.file .nm{flex:1 1 150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.file small{color:var(--muted);font-size:12px;white-space:nowrap}
+.file img{width:36px;height:36px;object-fit:cover;border-radius:6px}
+.file .ic{width:36px;height:36px;border-radius:6px;background:var(--chip);display:grid;place-content:center;font:700 10px var(--sans)}
+ul.docs li.doc{flex-wrap:wrap}
+h3{font:400 22px/1.1 var(--serif);margin:18px 0 8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--cream);padding:10px 16px;border-radius:999px;font:600 13px var(--sans);z-index:30}
+.confirm{display:flex;gap:6px;align-items:center;font-size:13px}
+.backup{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.backup b{font:400 22px/1.1 var(--serif)}
+.covers{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:4px 0 14px;display:grid;gap:4px}
+.covers b.t{font:400 22px/1.1 var(--serif)}
+.cov{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.cov:first-of-type{border-top:0}
+.tick{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--gold);display:grid;place-content:center;flex:none;font:700 13px var(--sans)}
+.tick.on{background:var(--gold);color:#00167A}
+.cov .who{margin-left:auto;color:var(--muted);font-size:13px;text-align:right}
+.ask{background:var(--chip);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;display:grid;gap:8px;margin:0 0 14px}
+.ask b{font:400 22px/1.1 var(--serif)}
+.ask label{display:flex;gap:10px;align-items:center;font-size:15px}
+.ask input{width:20px;height:20px;accent-color:#00167A}
+.ask em{font-style:normal;color:var(--goldtext);font-size:12px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.chips span{font:600 11px var(--sans);padding:2px 8px;border-radius:999px;background:var(--chip)}
+.appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
+.appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
+.appnav span{background:var(--chip);color:var(--ink)}
+.appnav svg{width:24px;height:24px}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Kora Lawler Aesthetics</span>
+    <h1>Clinic <em>policies</em></h1>
+    <p class="sub">One folder for each part of the compliance checklist. Tap a folder, then upload a photo or PDF to keep it there.</p>
+  </header>
+  <main id="main"></main>
+  <p class="note">Documents you upload stay on this iPad only. They are never sent anywhere or added to the public app code. Don’t upload anything with client names or records.</p>
+  <input type="file" id="up" accept="image/*,application/pdf,.pdf" multiple hidden>
+  <div id="toast" class="toast" hidden></div>
+</div>
+
+<nav class="appnav" aria-label="App sections">
+  <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="M16 10l5-3v10l-5-3"/></svg>Routine videos</a>
+  <a href="invoice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/></svg>Invoices</a>
+  <a href="stock.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>Stock</a>
+  <span aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Policies</span>
+</nav>
+
+<script>
+(function(){
+// Folders match the sections of the KL Clinic Compliance Checklist. Documents are placeholders until added.
+const FOLDERS=[
+ {id:'medical-council',name:'Medical Council',about:'You, as a doctor',docs:['Registration and competence records','Indemnity certificate','Consent policy','Clinical records policy (kept 8 years)','Advertising and social media policy']},
+ {id:'medicines',name:'Medicines and devices',about:'HPRA',docs:['Consultation and prescribing policy','Medicines management and fridge log','Product traceability (batch and lot)','Emergency kit and complications protocol','Adverse reaction reporting']},
+ {id:'consent-forms',name:'Consent forms',about:'One per treatment',docs:['Anti-wrinkle','Jaw clenching and grinding','Excessive sweating','Migraine','SkinPen microneedling','Skin boosters','Polynucleotides','Dermal fillers','Hyaluronidase','Skin consultation','Photography and social media','Medical history form']},
+ {id:'data-protection',name:'Data protection',about:'GDPR and the DPC',docs:['Privacy notice','Record of processing','Data processing agreements','Data breach plan','Access request procedure']},
+ {id:'health-and-safety',name:'Health and safety',about:'Health and Safety Authority',docs:['Safety Statement and risk assessments','Sharps and needlestick procedure','Clinical waste records','Infection prevention and control','First aid and accident book','Fire safety']},
+ {id:'staff',name:'Staff and directors',about:'Employment law',docs:['Directors’ roles','Confidentiality agreement','Employment policies (for future staff)']},
+ {id:'insurance',name:'Insurance',about:'Cover and renewals',docs:['Aesthetic Insure (medical indemnity)','LHK Group (business insurance)','Products liability (quote pending: Arachas)']},
+ {id:'company-and-tax',name:'Company and tax',about:'CRO and Revenue',docs:['Business name registration','CRO annual returns','Beneficial ownership (RBO)','Corporation tax','VAT threshold tracking']},
+ {id:'consumer',name:'Skincare sales and consumer law',about:'Cosmetics and the Consumer Rights Act',docs:['Product labelling checks','Terms and conditions','Cancellation and refund policy','Gift voucher terms','Complaints policy']},
+ {id:'premises',name:'Premises and council',about:'Limerick City and County Council',docs:['Commercial rates','Music licence','Accessibility']}
+];
+// Insurance covers. When a policy schedule is uploaded to the Insurance folder, Jo ticks which covers it includes
+// (PDF text is read on the iPad to suggest them; nothing is sent anywhere).
+const COVERS=[
+ {id:'indemnity',name:'Medical indemnity',kw:/indemnity|malpractice|medical professional/i},
+ {id:'public',name:'Public liability',kw:/public\s+liability/i},
+ {id:'products',name:'Products liability',kw:/products?\s+liability/i},
+ {id:'employers',name:'Employer\u2019s liability',kw:/employer[\u2019']?s?[\u2019']?\s+liability/i},
+ {id:'contents',name:'Contents and equipment',kw:/contents|equipment|all\s+risks/i},
+ {id:'interruption',name:'Business interruption',kw:/business\s+interruption|loss\s+of\s+(gross\s+)?(profit|income|revenue)/i},
+ {id:'cyber',name:'Cyber',kw:/cyber|data\s+breach/i}
+];
+const provider=f=>(f.doc||'Other').replace(/\s*\(.*$/,'');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const icon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+const main=document.getElementById('main');const up=document.getElementById('up');
+// Files are stored on this device only, in IndexedDB. Nothing is uploaded anywhere.
+let db=null;
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('kl-policies',1);r.onupgradeneeded=()=>{const s=r.result.createObjectStore('files',{keyPath:'id'});s.createIndex('folder','folder')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+const tx=(mode)=>db.transaction('files',mode).objectStore('files');
+const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const allFiles=()=>db?req(tx('readonly').getAll()):Promise.resolve([]);
+const putFile=f=>req(tx('readwrite').put(f));
+const delFile=id=>req(tx('readwrite').delete(id));
+let files=[];let target=null;let confirmId=null;let asking=null;// {ids:[], found:Set}
+const urls=new Map();const urlFor=f=>{if(!urls.has(f.id))urls.set(f.id,URL.createObjectURL(f.blob));return urls.get(f.id)};
+const size=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const day=t=>new Date(t).toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
+function fileRow(f){const isImg=/^image\//.test(f.type);
+  return `<li class="file">${isImg?`<img src="${urlFor(f)}" alt="">`:`<span class="ic">PDF</span>`}<span class="nm">${esc(f.name)}<br><small>${day(f.added)} · ${size(f.size)}</small></span>
+  ${confirmId===f.id?`<span class="confirm">Delete? <button class="btn small danger" data-del-yes="${f.id}">Delete</button><button class="btn small" data-del-no>Keep</button></span>`:
+  `<a class="btn small" href="${urlFor(f)}" target="_blank" rel="noopener">Open</a><button class="btn small" data-save="${f.id}">Save copy</button><button class="btn small" data-del="${f.id}" aria-label="Delete ${esc(f.name)}">&times;</button>`}${f.folder==='insurance'?`<span class="chips">${(f.covers||[]).map(c=>`<span>${esc((COVERS.find(x=>x.id===c)||{}).name||c)}</span>`).join('')}<button class="btn small" data-covers="${f.id}">${(f.covers||[]).length?'Edit covers':'Tick covers'}</button></span>`:''}</li>`}
+function coverBoard(){const ins=files.filter(f=>f.folder==='insurance');
+  return `<div class="covers"><b class="t">Cover checklist</b><span class="note">Ticks itself when you upload a schedule and confirm what it covers.</span>${COVERS.map(c=>{const by=[...new Set(ins.filter(f=>(f.covers||[]).includes(c.id)).map(provider))];return `<div class="cov"><span class="tick${by.length?' on':''}" aria-hidden="true">${by.length?'\u2713':''}</span><span>${esc(c.name)}</span><span class="who">${by.length?esc(by.join(', ')):'Not uploaded yet'}</span></div>`}).join('')}</div>`}
+function askPanel(){if(!asking)return'';const n=asking.ids.length;
+  return `<div class="ask"><b>Which covers does this schedule include?</b><span class="note">${asking.found.size?'I\u2019ve ticked what I found in the document. Check it, then save.':'Tick each cover listed on the schedule, then save.'}</span>${COVERS.map(c=>`<label><input type="checkbox" value="${c.id}"${asking.found.has(c.id)?' checked':''}> ${esc(c.name)}${asking.auto&&asking.auto.has(c.id)?' <em>found in document</em>':''}</label>`).join('')}<div class="bar"><button class="btn primary" data-cov-save>Save covers</button><button class="btn" data-cov-skip>Skip for now</button></div></div>`}
+function render(){
+  const id=location.hash.slice(1);const f=FOLDERS.find(x=>x.id===id);
+  if(!f){
+    main.innerHTML='<div class="grid">'+FOLDERS.map(x=>{const n=files.filter(y=>y.folder===x.id).length;const extra=x.id==='insurance'?` · ${COVERS.filter(c=>files.some(f=>f.folder==='insurance'&&(f.covers||[]).includes(c.id))).length} of ${COVERS.length} covers`:'';return `<button class="folder" data-id="${x.id}">${icon}<span><b>${esc(x.name)}</b><small>${esc(x.about)} · ${n?n+' uploaded':'nothing uploaded yet'}${extra}</small></span></button>`}).join('')+'</div>'+
+    `<div class="backup" style="margin-top:16px"><b>Back up your documents</b><span class="note">Everything here lives on this iPad. Tap below to save a copy of every document to Files, iCloud Drive or Google Drive, so nothing is lost if you delete the app or change iPad.</span><div><button class="btn primary" data-backup>Back up all (${files.length})</button></div></div>`;
+  }else{
+    const mine=files.filter(y=>y.folder===f.id);
+    main.innerHTML=`<section class="open"><button class="back" data-back>&larr; All folders</button><h2>${esc(f.name)}</h2><p class="sub">${esc(f.about)}</p>
+    <div class="bar"><button class="btn primary" data-up="">Upload photo or PDF</button>${mine.length?`<button class="btn" data-backup="${f.id}">Save copies of this folder</button>`:''}</div>${f.id==='insurance'?askPanel()+coverBoard():''}
+    <ul class="docs">${f.docs.map(d=>{const got=mine.filter(y=>y.doc===d);return `<li class="doc"><span>${esc(d)}</span><span class="right">${got.length?'<span class="pill done">Added</span>':'<span class="pill">Not added yet</span>'}<button class="btn small" data-up="${esc(d)}">Upload</button></span>${got.length?`<ul class="files">${got.map(fileRow).join('')}</ul>`:''}</li>`}).join('')}</ul>
+    ${(()=>{const other=mine.filter(y=>!f.docs.includes(y.doc));return other.length?`<h3>Other documents</h3><ul class="files">${other.map(fileRow).join('')}</ul>`:''})()}
+    </section>`;
+  }
+}
+async function addFiles(list){
+  const id=location.hash.slice(1);if(!FOLDERS.some(x=>x.id===id)||!db)return;
+  let n=0;for(const fl of list){if(!(/^image\//.test(fl.type)||fl.type==='application/pdf'||/\.pdf$/i.test(fl.name)))continue;
+    const rec={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),folder:id,doc:target||'',name:fl.name||'Document',type:fl.type||'application/pdf',size:fl.size,added:Date.now(),blob:fl};
+    await putFile(rec);files.push(rec);n++}
+  if(n&&id==='insurance'){const recs=files.slice(-n);const found=new Set();for(const r of recs)for(const c of await detect(r))found.add(c);asking={ids:recs.map(r=>r.id),found,auto:new Set(found)}}
+  render();toast(n?`Saved ${n} ${n===1?'document':'documents'} on this iPad`:'Only photos and PDFs can be added');
+}
+function loadScript(src){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
+let pdfReady=null;
+async function detect(rec){// reads PDF text on the iPad only; photos are ticked by hand
+  if(!(rec.type==='application/pdf'||/\.pdf$/i.test(rec.name)))return[];
+  try{pdfReady=pdfReady||loadScript('inv/pdf/pdf.min.js').then(()=>{pdfjsLib.GlobalWorkerOptions.workerSrc='inv/pdf/pdf.worker.min.js'});await pdfReady;
+    const doc=await pdfjsLib.getDocument({data:await rec.blob.arrayBuffer()}).promise;let text='';
+    for(let i=1;i<=Math.min(doc.numPages,15);i++){const c=await(await doc.getPage(i)).getTextContent();text+=' '+c.items.map(x=>x.str).join(' ')}
+    return COVERS.filter(c=>c.kw.test(text)).map(c=>c.id)}catch(e){return[]}}
+async function share(list){
+  if(!list.length){toast('Nothing to back up yet');return}
+  const fs=list.map(f=>new File([f.blob],f.name,{type:f.type}));
+  try{if(navigator.canShare&&navigator.canShare({files:fs})){await navigator.share({files:fs,title:'KL clinic policies'});return}}catch(e){if(e&&e.name==='AbortError')return}
+  // Fallback: open each one so it can be saved
+  list.forEach(f=>window.open(urlFor(f),'_blank'));
+}
+main.addEventListener('click',async e=>{
+  const t=e.target.closest('button,a');if(!t)return;
+  if(t.dataset.id){location.hash=t.dataset.id;return}
+  if(t.hasAttribute('data-cov-save')){const sel=[...main.querySelectorAll('.ask input:checked')].map(i=>i.value);for(const id of asking.ids){const f=files.find(x=>x.id===id);if(f){f.covers=sel;await putFile(f)}}asking=null;render();toast('Covers saved');return}
+  if(t.hasAttribute('data-cov-skip')){asking=null;render();return}
+  if(t.dataset.covers){const f=files.find(x=>x.id===t.dataset.covers);asking={ids:[f.id],found:new Set(f.covers||[]),auto:null};render();scrollTo(0,0);return}
+  if(t.hasAttribute('data-back')){location.hash='';return}
+  if(t.hasAttribute('data-up')){target=t.dataset.up;up.click();return}
+  if(t.dataset.save){share(files.filter(f=>f.id===t.dataset.save));return}
+  if(t.hasAttribute('data-backup')){const fid=t.dataset.backup;share(fid?files.filter(f=>f.folder===fid):files);return}
+  if(t.dataset.del){confirmId=t.dataset.del;render();return}
+  if(t.hasAttribute('data-del-no')){confirmId=null;render();return}
+  if(t.dataset.delYes){await delFile(t.dataset.delYes);files=files.filter(f=>f.id!==t.dataset.delYes);confirmId=null;render();toast('Deleted');return}
+});
+up.addEventListener('change',e=>{const fs=[...e.target.files];e.target.value='';addFiles(fs)});
+addEventListener('hashchange',()=>{confirmId=null;asking=null;render();scrollTo(0,0)});
+render();
+(async()=>{try{db=await openDB();files=await allFiles();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){toast('This browser can’t store documents')}render()})();
+})();
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));const had=!!navigator.serviceWorker.controller;let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!done){done=true;location.reload()}})}</script>
+</body></html>

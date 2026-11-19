@@ -1,0 +1,105 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="KL App">
+<meta name="theme-color" content="#FFFBF2"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest">
+<title>KL Stock</title>
+<style>
+@font-face{font-family:"Instrument Serif";font-weight:400;src:url(inv/instrument-serif.ttf) format("truetype")}
+:root{
+  --navy:#00167A;--gold:#FFC83C;--cream:#FFFBF2;
+  --bg:#FFFBF2;--panel:#FFFFFF;--ink:#0B1240;--muted:#5A6187;--line:#E6DFCC;--chip:#FFF3D1;--goldtext:#8A6400;--folder:#00167A;
+  --serif:"Instrument Serif",Georgia,serif;--sans:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--folder:#FFC83C;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--folder:#FFC83C;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding:20px max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:20px}
+header{border-bottom:1px solid var(--line);padding-bottom:14px}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{font:400 clamp(34px,5vw,52px)/1 var(--serif);margin:6px 0 0}
+h1 em{font-style:normal;color:var(--goldtext)}
+.sub{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.folder{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;min-width:0}
+.folder:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.folder svg{width:44px;height:44px;color:var(--folder)}
+.folder b{display:block;font:400 22px/1.1 var(--serif)}
+.folder small{color:var(--muted);font-size:13px}
+.back{all:unset;cursor:pointer;color:var(--muted);font:600 13px var(--sans);letter-spacing:.06em}
+.back:focus-visible{outline:2px solid var(--gold)}
+.open h2{font:400 34px/1.05 var(--serif);margin:6px 0 4px}
+.open .sub{margin:0 0 6px}
+ul.docs{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+ul.docs li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+ul.docs li:first-child{border-top:0}
+.pill{font:600 11px var(--sans);letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:var(--chip);color:var(--ink);white-space:nowrap}
+.note{font-size:13px;color:var(--muted)}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:600 13px var(--sans);padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.btn.primary{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+:root[data-theme="dark"] .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.small{padding:6px 11px;font-size:12px}
+.btn.danger{color:#B3261E}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+ul.docs li .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill.done{background:var(--navy);color:var(--cream)}
+:root[data-theme="dark"] .pill.done{background:var(--gold);color:#000E52}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.done{background:var(--gold);color:#000E52}}
+.files{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px;width:100%}
+.file{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.file .nm{flex:1 1 150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.file small{color:var(--muted);font-size:12px;white-space:nowrap}
+.file img{width:36px;height:36px;object-fit:cover;border-radius:6px}
+.file .ic{width:36px;height:36px;border-radius:6px;background:var(--chip);display:grid;place-content:center;font:700 10px var(--sans)}
+ul.docs li.doc{flex-wrap:wrap}
+h3{font:400 22px/1.1 var(--serif);margin:18px 0 8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--cream);padding:10px 16px;border-radius:999px;font:600 13px var(--sans);z-index:30}
+.confirm{display:flex;gap:6px;align-items:center;font-size:13px}
+.backup{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.backup b{font:400 22px/1.1 var(--serif)}
+.covers{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:4px 0 14px;display:grid;gap:4px}
+.covers b.t{font:400 22px/1.1 var(--serif)}
+.cov{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.cov:first-of-type{border-top:0}
+.tick{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--gold);display:grid;place-content:center;flex:none;font:700 13px var(--sans)}
+.tick.on{background:var(--gold);color:#00167A}
+.cov .who{margin-left:auto;color:var(--muted);font-size:13px;text-align:right}
+.ask{background:var(--chip);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;display:grid;gap:8px;margin:0 0 14px}
+.ask b{font:400 22px/1.1 var(--serif)}
+.ask label{display:flex;gap:10px;align-items:center;font-size:15px}
+.ask input{width:20px;height:20px;accent-color:#00167A}
+.ask em{font-style:normal;color:var(--goldtext);font-size:12px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.chips span{font:600 11px var(--sans);padding:2px 8px;border-radius:999px;background:var(--chip)}
+.appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
+.appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
+.appnav span{background:var(--chip);color:var(--ink)}
+.appnav svg{width:24px;height:24px}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Kora Lawler Aesthetics</span>
+    <h1>Stock <em>control</em></h1>
+    <p class="sub">Keep track of what’s on the shelf, and make supplier order forms without filling them in from scratch.</p>
+  </header>
+  <main class="grid">
+    <a class="folder" href="https://claude.ai/artifact/BAwKpEj5RCt8uSCCsynzKf" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>
+      <span><b>Stock list</b><small>Shelf counts, batches, expiry dates and what to reorder.</small></span></a>
+    <a class="folder" href="orders.html" style="text-decoration:none;color:inherit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7M9 8h3"/></svg>
+      <span><b>Order forms</b><small>Health Exchange and SkinPen. Pick items and amounts, get a finished form to send.</small></span></a>
+  </main>
+</div>
+<nav class="appnav" aria-label="App sections">
+  <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="M16 10l5-3v10l-5-3"/></svg>Routine videos</a>
+  <a href="invoice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/></svg>Invoices</a>
+  <span aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>Stock</span>
+  <a href="policies.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Policies</a>
+</nav>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));const had=!!navigator.serviceWorker.controller;let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!done){done=true;location.reload()}})}</script>
+</body></html>

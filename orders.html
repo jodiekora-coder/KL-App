@@ -1,0 +1,494 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="KL App">
+<meta name="theme-color" content="#FFFBF2"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest">
+<title>KL Order Forms</title>
+<style>
+@font-face{font-family:"Instrument Serif";font-weight:400;src:url(inv/instrument-serif.ttf) format("truetype")}
+:root{
+  --navy:#00167A;--gold:#FFC83C;--cream:#FFFBF2;
+  --bg:#FFFBF2;--panel:#FFFFFF;--ink:#0B1240;--muted:#5A6187;--line:#E6DFCC;--chip:#FFF3D1;--goldtext:#8A6400;--accent:#00167A;
+  --pom:#1E6B3A;--pombg:#E3F2E7;--ulm:#1D4FA8;--ulmbg:#E2EBFA;--cold:#2A6F8F;--coldbg:#E1F1F7;
+  --serif:"Instrument Serif",Georgia,serif;--sans:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--accent:#FFC83C;--pombg:#16402A;--pom:#9BE0B0;--ulmbg:#1A3470;--ulm:#A9C4FF;--coldbg:#173C52;--cold:#A6DDF2;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--accent:#FFC83C;--pombg:#16402A;--pom:#9BE0B0;--ulmbg:#1A3470;--ulm:#A9C4FF;--coldbg:#173C52;--cold:#A6DDF2;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding:20px max(16px,env(safe-area-inset-right,0px)) 120px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:18px}
+header{border-bottom:1px solid var(--line);padding-bottom:14px}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.eyebrow a{color:inherit;text-decoration:none}
+h1{font:400 clamp(34px,5vw,52px)/1 var(--serif);margin:6px 0 0}
+h1 em{font-style:normal;color:var(--goldtext)}
+h2{font:400 26px/1.1 var(--serif);margin:0}
+h3{font:400 20px/1.1 var(--serif);margin:0}
+.sub{margin:8px 0 0;color:var(--muted);max-width:62ch}
+.seg{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px;width:max-content;max-width:100%}
+.seg button{all:unset;cursor:pointer;padding:9px 16px;border-radius:999px;font:600 14px var(--sans);color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--cream)}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:var(--gold);color:#000E52}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:var(--gold);color:#000E52}}
+.seg button:focus-visible{outline:2px solid var(--gold)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.ask{background:var(--chip);border:1px solid var(--gold);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+.sticky{position:sticky;top:12px}
+@media (max-width:820px){.sticky{position:static}}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+input[type=search],input[type=text],input[type=email],select,textarea{font:15px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+input[type=search]{flex:1 1 220px}
+select{flex:1 1 200px}
+textarea{width:100%;min-height:70px;resize:vertical}
+.list{list-style:none;margin:0;padding:0;max-height:62vh;overflow:auto;border-top:1px solid var(--line);-webkit-overflow-scrolling:touch}
+@media (max-width:820px){.list{max-height:none}}
+.list li{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
+.list .grp{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:14px 2px 6px;border-bottom:0}
+.it{flex:1;min-width:0}
+.it b{display:block;font-weight:500;font-size:15px}
+.it small{color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:2px}
+.tag{font:700 10px var(--sans);letter-spacing:.05em;padding:2px 7px;border-radius:999px;text-transform:uppercase}
+.tag.POM{background:var(--pombg);color:var(--pom)}
+.tag.ULM{background:var(--ulmbg);color:var(--ulm)}
+.tag.cold{background:var(--coldbg);color:var(--cold)}
+.step{display:flex;align-items:center;gap:4px;flex:none}
+.step button{all:unset;cursor:pointer;width:36px;height:36px;border-radius:50%;display:grid;place-content:center;font:600 20px/1 var(--sans);border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.step button.add{width:auto;padding:0 14px;border-radius:999px;font-size:13px;background:var(--navy);color:var(--cream);border-color:var(--navy)}
+:root[data-theme="dark"] .step button.add{background:var(--gold);color:#000E52;border-color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .step button.add{background:var(--gold);color:#000E52;border-color:var(--gold)}}
+.step button:focus-visible{outline:2px solid var(--gold)}
+.step output{min-width:28px;text-align:center;font:600 16px var(--sans)}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;font:600 14px var(--sans);padding:11px 16px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-align:center}
+.btn.primary{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+:root[data-theme="dark"] .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{background:var(--gold);color:#000E52;border-color:var(--gold)}}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn.small{padding:7px 12px;font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.order{list-style:none;margin:10px 0;padding:0}
+.order li{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.order li:first-child{border-top:0}
+.empty{color:var(--muted);font-size:14px;padding:10px 0}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:6px 0;font-size:14px}
+.opt input{width:20px;height:20px;margin:1px 0 0;accent-color:#00167A;flex:none}
+fieldset{border:0;margin:12px 0 0;padding:0}
+legend{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.note{font-size:13px;color:var(--muted)}
+.warn{font-size:13px;background:var(--chip);border-left:3px solid var(--gold);padding:8px 10px;border-radius:6px}
+.total{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.sig{border:1px dashed var(--muted);border-radius:10px;background:#fff;touch-action:none;width:100%;height:120px;display:block}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.fields label{display:grid;gap:4px;font:600 12px var(--sans);color:var(--muted)}
+.preview{display:grid;gap:12px;justify-items:start}
+.preview img{width:100%;max-width:560px;border:1px solid var(--line);border-radius:6px;background:#fff;box-shadow:0 6px 24px rgba(0,22,122,.08)}
+details>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"Edit";font:600 12px var(--sans);color:var(--goldtext)}
+details[open]>summary::after{content:"Close"}
+.hist{list-style:none;margin:8px 0 0;padding:0}
+.hist li{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--cream);padding:10px 16px;border-radius:999px;font:600 13px var(--sans);z-index:30;max-width:90vw;text-align:center}
+.appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
+.appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
+.appnav span{background:var(--chip);color:var(--ink)}
+.appnav svg{width:24px;height:24px}
+[hidden]{display:none!important}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow"><a href="stock.html">Stock control</a> · Kora Lawler Aesthetics</span>
+    <h1>Order <em>forms</em></h1>
+    <p class="sub">Tap what you need and how many. The app fills in the supplier’s order form with your saved clinic details, ready to send.</p>
+  </header>
+
+  <div class="seg" role="group" aria-label="Supplier">
+    <button type="button" data-sup="hx" aria-pressed="true">Health Exchange</button>
+    <button type="button" data-sup="sp" aria-pressed="false">SkinPen</button>
+  </div>
+
+  <div id="setup" class="ask" hidden>
+    <h3>One-time setup</h3>
+    <p class="note" style="margin:0">Paste the setup code from Claude to add your account number, delivery address, prescriber name and your prices. It stays on this iPad only.</p>
+    <textarea id="setup-code" placeholder="Paste setup code here (starts with KLORDERS1:)"></textarea>
+    <div class="row"><button class="btn primary" id="setup-load" type="button">Save setup</button>
+      <label class="btn" for="setup-file">Choose file</label><input type="file" id="setup-file" accept=".txt,text/plain" hidden>
+      <button class="btn" id="setup-skip" type="button">Skip, I’ll type them</button></div>
+  </div>
+
+  <div class="cols">
+    <section class="card" aria-labelledby="pick-h">
+      <h2 id="pick-h">Products</h2>
+      <div class="tools">
+        <input type="search" id="q" placeholder="Search name or code" autocomplete="off" aria-label="Search products">
+        <select id="grp" aria-label="Product group"></select>
+      </div>
+      <ul class="list" id="list"></ul>
+    </section>
+
+    <section class="card" aria-labelledby="ord-h">
+      <h2 id="ord-h">This order</h2>
+      <ul class="order" id="order"></ul>
+      <div id="tot" class="total" hidden></div>
+
+      <div id="hx-opts">
+        <fieldset><legend>Delivery</legend>
+          <label class="opt"><input type="radio" name="svc" value="next"> Next working day (€11 ambient, €15.50 cold chain)</label>
+          <label class="opt"><input type="radio" name="svc" value="same"> Same day, Dublin area only (€37)</label>
+          <label class="opt"><input type="radio" name="svc" value="collect"> Collection from their Dublin 12 office</label>
+        </fieldset>
+        <div id="ulm-box" hidden>
+          <fieldset><legend>Unlicensed medicine</legend>
+            <label class="opt"><input type="checkbox" id="ulm"> As the prescriber, I am aware this medicine is unlicensed and will only use it for patients under my care, for whom there is no suitable authorised alternative.</label>
+          </fieldset>
+        </div>
+        <p id="rx-warn" class="warn" hidden>Prescription items: this form must be signed by you as the prescriber.</p>
+        <fieldset><legend>Prescriber signature</legend>
+          <canvas id="sig" class="sig" aria-label="Sign here with your finger or Pencil"></canvas>
+          <div class="row" style="margin-top:6px"><button class="btn small" id="sig-clear" type="button">Clear</button>
+            <label class="opt" style="padding:0"><input type="checkbox" id="sig-keep"> Keep my signature on this iPad</label></div>
+        </fieldset>
+      </div>
+
+      <div id="sp-opts" hidden>
+        <fieldset><legend>Note to SkinPen (optional)</legend>
+          <textarea id="sp-note" placeholder="For example: please confirm delivery date"></textarea>
+        </fieldset>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary" id="make" type="button">Make order form</button>
+        <button class="btn" id="clear" type="button">Clear order</button>
+      </div>
+      <p class="note" id="status" role="status"></p>
+    </section>
+  </div>
+
+  <section class="card preview" id="result" hidden aria-labelledby="res-h">
+    <h2 id="res-h">Your order form</h2>
+    <img id="prev" alt="Preview of the completed order form">
+    <div class="row">
+      <button class="btn primary" id="send" type="button">Send or save PDF</button>
+      <button class="btn" id="copy-email" type="button"></button>
+      <button class="btn" id="mark" type="button">Mark as ordered</button>
+    </div>
+    <p class="note" id="send-note"></p>
+  </section>
+
+  <details class="card" id="details">
+    <summary><h2>Clinic details</h2></summary>
+    <p class="note">Saved on this iPad and used on every form. Change them any time.</p>
+    <div class="fields">
+      <label>Health Exchange account code<input type="text" data-k="ac" autocomplete="off"></label>
+      <label>Clinic name<input type="text" data-k="clinicName"></label>
+      <label>Clinic address<input type="text" data-k="clinicAddr"></label>
+      <label>Health Exchange delivery address<input type="text" data-k="hxDelivery"></label>
+      <label>SkinPen delivery address<input type="text" data-k="spDelivery"></label>
+      <label>Prescriber name<input type="text" data-k="prescriber"></label>
+      <label>Clinic phone<input type="text" data-k="phone" inputmode="tel"></label>
+      <label>Clinic email (optional)<input type="email" data-k="email"></label>
+      <label>SkinPen account number (optional)<input type="text" data-k="spAccount" autocomplete="off"></label>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn small" id="reopen-setup" type="button">Paste a new setup code</button></div>
+  </details>
+
+  <section class="card" id="history-card" hidden>
+    <h2>Past orders</h2>
+    <ul class="hist" id="hist"></ul>
+  </section>
+
+  <p class="note">Everything here stays on this iPad. No order, price or address is sent anywhere until you send the PDF yourself.</p>
+  <div id="toast" class="toast" hidden></div>
+</div>
+
+<nav class="appnav" aria-label="App sections">
+  <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="M16 10l5-3v10l-5-3"/></svg>Routine videos</a>
+  <a href="invoice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/></svg>Invoices</a>
+  <a href="stock.html" aria-current="page" style="background:var(--chip);color:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>Stock</a>
+  <a href="policies.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Policies</a>
+</nav>
+
+<script src="ord/hx-catalogue.js"></script>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const CLINIC_ADDR='Unit 20, Groody Neighbourhood Centre, Castletroy, Limerick V94 K588';
+const DEFAULTS={ac:'',clinicName:'The Kora Lawler Clinic Limited, trading as Kora Lawler Aesthetics',clinicAddr:CLINIC_ADDR,hxDelivery:CLINIC_ADDR,spDelivery:CLINIC_ADDR,prescriber:'',phone:'085 183 3428',email:'',spAccount:''};
+const CRO='809995';
+const SUPPLIERS={
+  hx:{name:'Health Exchange',email:'orders@healthxchange.ie',
+      items:(window.HX_CATALOGUE||[]).map(r=>({code:r[0],desc:r[1],group:r[2],k:r[3],cold:!!r[4]}))},
+  sp:{name:'SkinPen (Crown Aesthetics)',email:'ie.orders@revance.com',
+      items:[
+        {code:'F5SP543',desc:'SkinPen Precision Elite Treatment Kit',pack:'Case of 12 kits, with 12 aftercare leaflets',group:'SkinPen consumables'},
+        {code:'F5SP103',desc:'Lift HG Glide Gel, 15 ml tubes',pack:'Case of 24 tubes',group:'SkinPen consumables'},
+        {code:'F5BV174',desc:'BIOJUVE Biocellulose Post Procedure Masque, Face',pack:'Case of 24 masques',group:'SkinPen consumables'},
+        {code:'F5BV178',desc:'BIOJUVE Biocellulose Post Procedure Masque, Neck and Décolletage',pack:'Case of 24 masques',group:'SkinPen consumables'}]}
+};
+// ---------- storage ----------
+const KEY='kl-orders-v1';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+let S=load();
+S.settings=Object.assign({},DEFAULTS,S.settings||{});
+S.prices=S.prices||{hx:{},sp:{}};
+S.drafts=S.drafts||{hx:{},sp:{}};
+S.history=S.history||[];
+S.svc=S.svc||'next';
+S.sup=S.sup||'hx';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Couldn’t save on this iPad (storage full or private mode).')}}
+let sup=S.sup;
+const byCode={};for(const k in SUPPLIERS){byCode[k]={};for(const it of SUPPLIERS[k].items)byCode[k][it.code]=it}
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2800)}
+const eur=n=>'€'+n.toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ---------- setup code ----------
+function applySetup(text){
+  text=(text||'').trim();const m=text.match(/KLORDERS1:([A-Za-z0-9+/=\s]+)/);
+  if(!m)throw new Error('That doesn’t look like a setup code. It should start with KLORDERS1:');
+  const bin=atob(m[1].replace(/\s+/g,''));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  const d=JSON.parse(new TextDecoder().decode(bytes));
+  for(const k of ['ac','hxDelivery','spDelivery','prescriber','clinicName','clinicAddr','phone','email','spAccount'])if(d[k])S.settings[k]=d[k];
+  if(d.prices){for(const k of ['hx','sp'])if(d.prices[k])S.prices[k]=d.prices[k]}
+  S.setupDone=true;save();
+}
+$('#setup-load').onclick=()=>{try{applySetup($('#setup-code').value);$('#setup-code').value='';$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details and prices are on this iPad.')}catch(e){toast(e.message||'Couldn’t read that code.')}};
+$('#setup-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{applySetup(await f.text());$('#setup').hidden=true;fillFields();renderAll();toast('Saved. Your details and prices are on this iPad.')}catch(err){toast(err.message||'Couldn’t read that file.')}e.target.value=''};
+$('#setup-skip').onclick=()=>{S.setupDone=true;save();$('#setup').hidden=true;$('#details').open=true};
+$('#reopen-setup').onclick=()=>{$('#setup').hidden=false;$('#setup').scrollIntoView({behavior:'smooth'})};
+$('#setup').hidden=!!S.setupDone;
+
+// ---------- clinic details ----------
+function fillFields(){document.querySelectorAll('[data-k]').forEach(i=>{i.value=S.settings[i.dataset.k]||''})}
+document.querySelectorAll('[data-k]').forEach(i=>i.addEventListener('input',()=>{S.settings[i.dataset.k]=i.value;save()}));
+fillFields();
+
+// ---------- supplier switch ----------
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{sup=b.dataset.sup;S.sup=sup;save();$('#q').value='';renderAll();$('#result').hidden=true});
+
+// ---------- product list ----------
+function orderedBefore(){const seen=new Set();for(const h of S.history)if(h.sup===sup)for(const [c] of h.items)seen.add(c);return seen}
+function renderGroups(){
+  const items=SUPPLIERS[sup].items;const groups=[...new Set(items.map(i=>i.group))];
+  const ob=orderedBefore();
+  const opts=[];if(ob.size)opts.push(['__usual','Ordered before']);
+  if(groups.length>1)opts.push(['__all','All products']);
+  for(const g of groups)opts.push([g,g]);
+  const cur=$('#grp').value;
+  $('#grp').innerHTML=opts.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  $('#grp').value=opts.some(o=>o[0]===cur)?cur:(ob.size?'__usual':opts[0][0]);
+  $('#grp').hidden=groups.length<2&&!ob.size;
+}
+function tags(it){let t='';if(it.k==='POM')t+='<span class="tag POM">Prescription</span>';if(it.k==='ULM')t+='<span class="tag ULM">Unlicensed</span>';if(it.cold)t+='<span class="tag cold">Cold chain</span>';return t}
+function stepper(code){const q=S.drafts[sup][code]||0;
+  return q?`<div class="step"><button type="button" data-d="-1" data-c="${esc(code)}" aria-label="One less">−</button><output>${q}</output><button type="button" data-d="1" data-c="${esc(code)}" aria-label="One more">+</button></div>`
+          :`<div class="step"><button type="button" class="add" data-d="1" data-c="${esc(code)}">Add</button></div>`}
+function renderList(){
+  const q=$('#q').value.trim().toLowerCase();const g=$('#grp').value;const items=SUPPLIERS[sup].items;const ob=orderedBefore();
+  let rows=items.filter(it=>{
+    if(q)return (it.desc+' '+it.code+' '+it.group).toLowerCase().includes(q);
+    if(g==='__usual')return ob.has(it.code);if(g==='__all'||!g)return true;return it.group===g});
+  const P=S.prices[sup]||{};let html='';let last='';
+  if(!rows.length)html='<li class="empty">Nothing matches. Try part of the name or the code.</li>';
+  for(const it of rows.slice(0,300)){
+    if((q||g==='__all'||g==='__usual')&&it.group!==last&&SUPPLIERS[sup].items.length>8){html+=`<li class="grp">${esc(it.group)}</li>`;last=it.group}
+    const pr=P[it.code]!=null?`<span>${eur(P[it.code])} ex VAT</span>`:'';
+    html+=`<li><div class="it"><b>${esc(it.desc)}</b><small><span>${esc(it.code)}</span>${it.pack?`<span>${esc(it.pack)}</span>`:''}${pr}${tags(it)}</small></div>${stepper(it.code)}</li>`}
+  if(rows.length>300)html+='<li class="empty">Showing the first 300. Search to narrow it down.</li>';
+  $('#list').innerHTML=html;
+}
+function bump(code,d){const D=S.drafts[sup];D[code]=Math.max(0,(D[code]||0)+d);if(!D[code])delete D[code];save();renderList();renderOrder();$('#result').hidden=true}
+document.addEventListener('click',e=>{const b=e.target.closest('.step button');if(b)bump(b.dataset.c,+b.dataset.d)});
+$('#q').addEventListener('input',renderList);$('#grp').addEventListener('change',renderList);
+
+// ---------- this order ----------
+function lines(){const D=S.drafts[sup];return Object.keys(D).filter(c=>byCode[sup][c]&&D[c]>0).map(c=>({...byCode[sup][c],qty:D[c]}))}
+function renderOrder(){
+  const L=lines();const P=S.prices[sup]||{};
+  $('#order').innerHTML=L.length?L.map(it=>`<li><div class="it"><b>${esc(it.desc)}</b><small><span>${esc(it.code)}</span>${tags(it)}</small></div>${stepper(it.code)}</li>`).join(''):'<li class="empty">Nothing added yet. Tap Add next to a product.</li>';
+  let tot=0,known=true;for(const it of L){if(P[it.code]==null)known=false;else tot+=P[it.code]*it.qty}
+  $('#tot').hidden=!L.length||!Object.keys(P).length;
+  $('#tot').innerHTML=`<span>Estimated cost${known?'':' (some prices missing)'}</span><b>${eur(tot)} ex VAT</b>`;
+  const isHx=sup==='hx';$('#hx-opts').hidden=!isHx;$('#sp-opts').hidden=isHx;
+  const hasULM=L.some(i=>i.k==='ULM'),hasRx=L.some(i=>i.k==='POM'||i.k==='ULM');
+  $('#ulm-box').hidden=!hasULM;if(hasULM&&!S.ulmTouched)$('#ulm').checked=true;
+  $('#rx-warn').hidden=!hasRx;
+  $('#make').disabled=!L.length;
+  if(isHx)sizeSig();
+}
+document.querySelectorAll('input[name=svc]').forEach(r=>{r.checked=r.value===S.svc;r.onchange=()=>{S.svc=r.value;save()}});
+$('#ulm').onchange=()=>{S.ulmTouched=true};
+$('#sp-note').value=S.spNote||'';$('#sp-note').oninput=e=>{S.spNote=e.target.value;save()};
+$('#clear').onclick=()=>{if(!lines().length)return;S.drafts[sup]={};S.ulmTouched=false;save();renderAll();$('#result').hidden=true;toast('Order cleared.')};
+
+// ---------- signature pad ----------
+const sig=$('#sig');let sctx,drawing=false,hasSig=false;
+function sizeSig(){const r=sig.getBoundingClientRect();if(!r.width)return;const w=Math.round(r.width*2),h=Math.round(r.height*2);if(sig.width===w&&sig.height===h)return;
+  sig.width=w;sig.height=h;sctx=sig.getContext('2d');sctx.lineWidth=4;sctx.lineCap='round';sctx.lineJoin='round';sctx.strokeStyle='#0B1240';hasSig=false;
+  if(S.sigData){const im=new Image();im.onload=()=>{sctx.drawImage(im,0,0,w,h);hasSig=true};im.src=S.sigData;$('#sig-keep').checked=true}}
+const pt=e=>{const r=sig.getBoundingClientRect();return[(e.clientX-r.left)*2,(e.clientY-r.top)*2]};
+sig.addEventListener('pointerdown',e=>{sizeSig();drawing=true;sig.setPointerCapture(e.pointerId);const [x,y]=pt(e);sctx.beginPath();sctx.moveTo(x,y);sctx.lineTo(x+.1,y+.1);sctx.stroke();hasSig=true});
+sig.addEventListener('pointermove',e=>{if(!drawing)return;const [x,y]=pt(e);sctx.lineTo(x,y);sctx.stroke()});
+const endSig=()=>{if(!drawing)return;drawing=false;if($('#sig-keep').checked){S.sigData=sig.toDataURL('image/png');save()}};
+sig.addEventListener('pointerup',endSig);sig.addEventListener('pointercancel',endSig);
+$('#sig-clear').onclick=()=>{sctx&&sctx.clearRect(0,0,sig.width,sig.height);hasSig=false;if(S.sigData){delete S.sigData;save()}};
+$('#sig-keep').onchange=e=>{if(e.target.checked&&hasSig){S.sigData=sig.toDataURL('image/png')}else if(!e.target.checked){delete S.sigData}save()};
+function sigImage(){if(!hasSig||!sctx)return null;
+  // trim to the drawn area
+  const d=sctx.getImageData(0,0,sig.width,sig.height).data;let x0=sig.width,y0=sig.height,x1=0,y1=0;
+  for(let y=0;y<sig.height;y+=2)for(let x=0;x<sig.width;x+=2){if(d[(y*sig.width+x)*4+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
+  if(x1<=x0)return null;const c=document.createElement('canvas');c.width=x1-x0+8;c.height=y1-y0+8;c.getContext('2d').drawImage(sig,x0-4,y0-4,c.width,c.height,0,0,c.width,c.height);return c}
+
+// ---------- drawing helpers ----------
+const W=1654,H=2339;
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
+function fit(ctx,text,maxW,size,font){let s=size;ctx.font=font.replace('{s}',s);while(s>12&&ctx.measureText(text).width>maxW){s-=1;ctx.font=font.replace('{s}',s)}return s}
+function wrap(ctx,text,maxW){const words=String(text).split(/\s+/);const out=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){out.push(cur);cur=w}else cur=t}if(cur)out.push(cur);return out}
+const today=()=>new Date().toLocaleDateString('en-IE',{day:'numeric',month:'long',year:'numeric'});
+const ref=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return 'KL-PO-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())};
+
+// Health Exchange: their own blank order form, filled in at the exact line positions (200 dpi A4).
+async function drawHX(L,sigC){
+  const bg=await loadImg('ord/hx-form.png');const ROWS=18;const pages=[];const st=S.settings;
+  const hasULM=L.some(i=>i.k==='ULM');
+  for(let p=0;p<Math.max(1,Math.ceil(L.length/ROWS));p++){
+    const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#fff';x.fillRect(0,0,W,H);x.drawImage(bg,0,0,W,H);
+    x.fillStyle='#0B1240';x.textBaseline='alphabetic';const F='{s}px "Helvetica Neue",Arial,sans-serif';
+    const line=(t,y)=>{fit(x,t,1200,30,F);x.fillText(t,420,y-9)};
+    line(st.ac||'',454);line(st.clinicName||'',506);line(st.clinicAddr||'',558);line(st.hxDelivery||'',611);
+    const box={next:700,same:737,collect:779}[S.svc||'next'];
+    x.font='bold 40px Arial';x.textAlign='center';x.fillText('X',533,box+14);x.textAlign='left';
+    L.slice(p*ROWS,(p+1)*ROWS).forEach((it,i)=>{const y=894+40*i+29;
+      fit(x,it.code,236,25,F);x.fillText(it.code,416,y);
+      fit(x,it.desc,578,25,F);x.fillText(it.desc,668,y);
+      x.font='600 26px Arial';x.textAlign='center';x.fillText(String(it.qty),1325,y);x.textAlign='left'});
+    if(hasULM&&$('#ulm').checked){x.beginPath();x.arc(247,1677,8,0,Math.PI*2);x.fill()}
+    x.font='28px "Helvetica Neue",Arial,sans-serif';x.fillText(st.prescriber||'',440,1942);
+    if(sigC){let h=54,w=sigC.width*h/sigC.height;if(w>460){w=460;h=sigC.height*w/sigC.width}x.drawImage(sigC,440,1996-h,w,h)}
+    x.font='28px "Helvetica Neue",Arial,sans-serif';x.fillText(today(),300,2038);
+    if(pages.length||L.length>ROWS){x.font='22px Arial';x.fillStyle='#5A6187';x.fillText('Page '+(p+1)+' of '+Math.ceil(L.length/ROWS),1400,2280)}
+    pages.push(c)}
+  return pages}
+
+// SkinPen: Kora Lawler branded purchase order (no supplier form exists).
+async function drawSP(L,reference){
+  try{await document.fonts.load('60px "Instrument Serif"')}catch(e){}
+  const logo=await loadImg('inv/logo.png');const st=S.settings;const pages=[];const ROWS=14;
+  const SERIF='"Instrument Serif",Georgia,serif',SANS='"Helvetica Neue",Arial,sans-serif';
+  const NAVY='#00167A',GOLD='#FFC83C',INK='#0B1240',MUTED='#5A6187';
+  const n=Math.max(1,Math.ceil(L.length/ROWS));
+  for(let p=0;p<n;p++){
+    const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#FFFBF2';x.fillRect(0,0,W,H);
+    const M=130;
+    x.drawImage(logo,M,110,520,520*logo.height/logo.width);
+    x.textAlign='right';x.fillStyle=MUTED;x.font='600 26px '+SANS;x.fillText('PURCHASE ORDER',W-M,170);
+    x.fillStyle=NAVY;x.font='96px '+SERIF;x.fillText('Order form',W-M,268);
+    x.fillStyle=INK;x.font='30px '+SANS;x.fillText(reference,W-M,330);x.fillText(today(),W-M,374);
+    x.textAlign='left';x.fillStyle=GOLD;x.fillRect(M,430,W-2*M,5);
+    // address blocks
+    const block=(title,linesA,bx,by,bw)=>{x.fillStyle=MUTED;x.font='600 22px '+SANS;x.fillText(title.toUpperCase(),bx,by);
+      x.fillStyle=INK;x.font='30px '+SANS;let y=by+46;for(const l of linesA){for(const w of wrap(x,l,bw)){x.fillText(w,bx,y);y+=42}}return y};
+    const colW=(W-2*M-80)/2;
+    const to=['Crown Aesthetics (SkinPen)',SUPPLIERS.sp.email];if(st.spAccount)to.push('Account: '+st.spAccount);
+    const fromL=[st.clinicName,st.clinicAddr,'CRO '+CRO];if(st.phone)fromL.push(st.phone);if(st.email)fromL.push(st.email);
+    const y1=block('To',to,M,510,colW),y2=block('From',fromL,M+colW+80,510,colW);
+    let y=Math.max(y1,y2)+30;
+    y=block('Deliver to',[st.spDelivery||st.clinicAddr],M,y,W-2*M)+40;
+    // table
+    const cx=[M,M+260,M+1060,W-M];const th=70;
+    x.fillStyle=NAVY;x.fillRect(M,y,W-2*M,th);x.fillStyle='#FFFBF2';x.font='600 24px '+SANS;
+    x.fillText('CODE',cx[0]+24,y+45);x.fillText('PRODUCT',cx[1]+24,y+45);x.textAlign='right';x.fillText('QTY (CASES)',cx[3]-24,y+45);x.textAlign='left';
+    y+=th;
+    for(const it of L.slice(p*ROWS,(p+1)*ROWS)){
+      x.fillStyle=INK;x.font='600 28px '+SANS;x.fillText(it.code,cx[0]+24,y+52);
+      x.font='30px '+SANS;const dl=wrap(x,it.desc,cx[2]-cx[1]-30);let yy=y+52;for(const l of dl){x.fillText(l,cx[1]+24,yy);yy+=40}
+      x.fillStyle=MUTED;x.font='24px '+SANS;x.fillText(it.pack||'',cx[1]+24,yy);yy+=20;
+      x.fillStyle=NAVY;x.font='600 34px '+SANS;x.textAlign='right';x.fillText(String(it.qty),cx[3]-24,y+54);x.textAlign='left';
+      y=Math.max(yy,y+80)+18;x.fillStyle='#E6DFCC';x.fillRect(M,y,W-2*M,2);
+    }
+    y+=50;
+    const note=(S.spNote||'').trim();
+    if(note&&p===n-1){x.fillStyle=MUTED;x.font='600 22px '+SANS;x.fillText('NOTE',M,y);x.fillStyle=INK;x.font='30px '+SANS;y+=46;for(const l of wrap(x,note,W-2*M)){x.fillText(l,M,y);y+=42}y+=20}
+    if(p===n-1){x.fillStyle=INK;x.font='30px '+SANS;x.fillText('Please confirm this order and the delivery date by email. Thank you.',M,y+10);
+      if(st.prescriber){x.fillStyle=MUTED;x.font='600 22px '+SANS;x.fillText('ORDERED BY',M,y+90);x.fillStyle=NAVY;x.font='48px '+SERIF;x.fillText(st.prescriber,M,y+150)}}
+    // footer
+    x.fillStyle=NAVY;x.fillRect(0,H-150,W,150);x.fillStyle=GOLD;x.fillRect(0,H-150,W,5);
+    x.fillStyle='#FFFBF2';x.textAlign='center';x.font='26px '+SANS;
+    x.fillText('The Kora Lawler Clinic Limited, trading as Kora Lawler Aesthetics · CRO '+CRO,W/2,H-88);
+    x.fillText(CLINIC_ADDR+(n>1?'  ·  Page '+(p+1)+' of '+n:''),W/2,H-46);x.textAlign='left';
+    pages.push(c)}
+  return pages}
+
+// ---------- PDF (one JPEG per A4 page) ----------
+async function toPdf(canvases,title){
+  const jpgs=[];for(const c of canvases){const b=await new Promise(r=>c.toBlob(r,'image/jpeg',0.9));jpgs.push({bytes:new Uint8Array(await b.arrayBuffer()),w:c.width,h:c.height})}
+  const enc=new TextEncoder();const chunks=[];let len=0;const offs=[];
+  const add=x=>{const b=typeof x==='string'?enc.encode(x):x;chunks.push(b);len+=b.length};
+  const PW=595.28,PH=841.89,n=jpgs.length;const t=title.replace(/[()\\]/g,'');
+  add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const obj=(i,s)=>{offs[i]=len;add(i+' 0 obj\n'+s+'\nendobj\n')};
+  const kids=[];for(let i=0;i<n;i++)kids.push((3+i*3)+' 0 R');
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${n} >>`);
+  jpgs.forEach((j,i)=>{const pg=3+i*3,im=pg+1,ct=pg+2;const content=`q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;
+    obj(pg,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 ${im} 0 R >> >> /Contents ${ct} 0 R >>`);
+    offs[im]=len;add(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${j.w} /Height ${j.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${j.bytes.length} >>\nstream\n`);add(j.bytes);add('\nendstream\nendobj\n');
+    obj(ct,`<< /Length ${content.length} >>\nstream\n${content}\nendstream`)});
+  const info=3+n*3;obj(info,`<< /Title (${t}) /Author (Kora Lawler Aesthetics) /Producer (KL App) >>`);
+  const xr=len;let xref=`xref\n0 ${info+1}\n0000000000 65535 f \n`;for(let i=1;i<=info;i++)xref+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  add(xref+`trailer\n<< /Size ${info+1} /Root 1 0 R /Info ${info} 0 R >>\nstartxref\n${xr}\n%%EOF\n`);
+  return new Blob(chunks,{type:'application/pdf'})}
+
+// ---------- make / send ----------
+let made=null;
+$('#make').onclick=async()=>{
+  const L=lines();if(!L.length)return;const st=S.settings;
+  if(sup==='hx'){
+    const missing=[];if(!st.ac)missing.push('account code');if(!st.prescriber)missing.push('prescriber name');
+    if(missing.length){$('#details').open=true;$('#details').scrollIntoView({behavior:'smooth'});toast('Add your '+missing.join(' and ')+' in Clinic details first.');return}
+    if(L.some(i=>i.k==='POM'||i.k==='ULM')&&!hasSig){toast('Please sign in the box first. Prescription items need your signature.');sig.scrollIntoView({behavior:'smooth',block:'center'});return}
+    if(L.some(i=>i.k==='ULM')&&!$('#ulm').checked){toast('Tick the unlicensed medicine statement, or remove the unlicensed items.');return}
+  }
+  $('#make').disabled=true;$('#status').textContent='Making the form…';
+  try{
+    const reference=ref();
+    const pages=sup==='hx'?await drawHX(L,sigImage()):await drawSP(L,reference);
+    const stamp=reference.replace('KL-PO-','');
+    const name=(sup==='hx'?'KL-HealthExchange-order-':'KL-SkinPen-order-')+stamp+'.pdf';
+    const blob=await toPdf(pages,(sup==='hx'?'Health Exchange order ':'SkinPen order ')+reference);
+    made={file:new File([blob],name,{type:'application/pdf'}),sup,items:L.map(i=>[i.code,i.qty]),ref:reference};
+    $('#prev').src=pages[0].toDataURL('image/jpeg',0.85);
+    $('#copy-email').textContent='Copy '+SUPPLIERS[sup].email;
+    $('#send-note').textContent='Send it to '+SUPPLIERS[sup].email+'. Tap “Send or save PDF”, choose Mail, then paste the address.'+(pages.length>1?' This order runs to '+pages.length+' pages.':'');
+    $('#result').hidden=false;$('#result').scrollIntoView({behavior:'smooth'});$('#status').textContent='';
+  }catch(e){console.error(e);$('#status').textContent='Couldn’t make the form. Please try again.'}
+  finally{$('#make').disabled=false}
+};
+$('#send').onclick=async()=>{if(!made)return;const f=made.file;
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:f.name});toast('Done. Tap “Mark as ordered” once it’s sent.');return}}
+  catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);toast('PDF downloaded. On the iPad it goes to Files › Downloads.')};
+$('#copy-email').onclick=async()=>{const e=SUPPLIERS[sup].email;try{await navigator.clipboard.writeText(e);toast('Copied '+e)}catch(err){toast(e)}};
+$('#mark').onclick=()=>{if(!made)return;S.history.unshift({sup:made.sup,at:Date.now(),items:made.items,ref:made.ref});S.history=S.history.slice(0,40);
+  S.drafts[made.sup]={};S.ulmTouched=false;save();made=null;$('#result').hidden=true;renderAll();toast('Saved to past orders. Remember to add it to the stock list when it arrives.')};
+
+// ---------- history ----------
+function renderHist(){const H=S.history;$('#history-card').hidden=!H.length;
+  $('#hist').innerHTML=H.map((h,i)=>{const n=h.items.reduce((a,[,q])=>a+q,0);const d=new Date(h.at).toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+    return `<li><span><b>${esc(SUPPLIERS[h.sup]?SUPPLIERS[h.sup].name:h.sup)}</b> · ${d}<br><small class="note">${h.items.length} product${h.items.length>1?'s':''}, ${n} item${n>1?'s':''} · ${esc(h.ref||'')}</small></span><button class="btn small" type="button" data-again="${i}">Order again</button></li>`}).join('')}
+$('#hist').addEventListener('click',e=>{const b=e.target.closest('[data-again]');if(!b)return;const h=S.history[+b.dataset.again];
+  sup=h.sup;S.sup=sup;S.drafts[sup]={};for(const [c,q] of h.items)S.drafts[sup][c]=q;save();renderAll();window.scrollTo({top:0,behavior:'smooth'});toast('Copied into this order. Change amounts if you need to.')});
+
+function renderAll(){document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sup===sup));renderGroups();renderList();renderOrder();renderHist()}
+addEventListener('resize',()=>{if(sup==='hx')sizeSig()});
+renderAll();
+})();
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));const had=!!navigator.serviceWorker.controller;let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!done){done=true;location.reload()}})}</script>
+</body></html>
