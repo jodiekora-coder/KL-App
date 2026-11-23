@@ -576,7 +576,7 @@ async function addPhoto(e){const f=e.target.files[0];if(!f)return;status('Prepar
     if(card){e.target.value='';const src=card.thumb||null;let id=card.img||null;
       if(!id&&src){const k=Math.min(1,520/Math.max(src.width,src.height));const c=document.createElement('canvas');c.width=Math.round(src.width*k);c.height=Math.round(src.height*k);c.getContext('2d').drawImage(src,0,0,c.width,c.height);
         let data=c.toDataURL('image/webp',0.86);if(!data.startsWith('data:image/webp'))data=c.toDataURL('image/png');id=await addLibImage(card.product,card.short,card.how,data,card.title)}
-      dlg.close();status('Filled in from the card: '+card.product+'. Check the details.');pickCb&&pickCb(id,card);return}}catch(err){}}const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)});
+      dlg.close();status('Filled in from the card: '+card.product+'. Check the details.');pickCb&&pickCb(id,card);return}}catch(err){status('That card couldn’t be read, so it was saved as a plain photo. Type the product name in.')}}const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)});
   const im=await toImg(url);e.target.value='';if(!im){status('That photo couldn’t be opened. Try another one.');return}
   let c=document.createElement('canvas');const s=Math.min(1,520/Math.max(im.width,im.height));c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
   cutout(c);c=trim(c);
