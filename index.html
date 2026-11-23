@@ -150,7 +150,7 @@ tr.win td{font-weight:700}
     <div class="card">
       <div class="sect-h"><h2>Routine steps</h2>
         <div class="tools"><button class="btn small" id="add-am">+ Morning step</button><button class="btn small" id="add-pm">+ Evening step</button></div></div>
-      <p class="hint" style="margin:6px 0 14px">Tap the photo box to pick a product. Pick a product name from the list and the photo, short name and how-to fill in for you. Keep it to 6 to 8 steps.</p>
+      <p class="hint" style="margin:6px 0 14px">Got a list or a photo of the products? Tap “Fill from photo” and the steps fill in for you to check. Or tap the photo box to pick a product. Pick a product name from the list and the photo, short name and how-to fill in for you. Keep it to 6 to 8 steps.</p>
       <div class="steps" id="steps"></div>
     </div>
 
@@ -618,13 +618,14 @@ document.querySelectorAll('input[name=style]').forEach(r=>r.addEventListener('ch
   const sv=()=>{const v={book:$('#lk-book').value.trim(),review:$('#lk-review').value.trim()};try{localStorage.setItem('kl-rv-links',JSON.stringify(v))}catch(e){}renderMsg()};
   $('#lk-book').addEventListener('input',sv);$('#lk-review').addEventListener('input',sv);$('#print').onclick=printRoutine;renderMsg()})();
 $('#copy').onclick=async()=>{const t=$('#msg').textContent;try{await navigator.clipboard.writeText(t);$('#copied').textContent='Copied'}catch(e){const r=document.createRange();r.selectNodeContents($('#msg'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('#copied').textContent='Selected. Tap Copy.'}};
+window.KL_ROUTINE_API={getPlan:()=>plan,products:allProducts,changed,status};
 // ---------- boot ----------
 (async()=>{loadLib();for(const [k,v] of Object.entries(window.KL_IMGS))IMG[k]=await toImg(v);for(const l of LIB)IMG[l.id]=await toImg(l.data);
   try{await Promise.all([document.fonts.load('60px "Instrument Serif"'),document.fonts.load('italic 60px "Instrument Serif"'),document.fonts.load('600 30px Inter'),document.fonts.load('700 30px Inter'),document.fonts.load('500 30px Inter')])}catch(e){}
   renderLists();renderSteps();renderTips();renderMsg();rebuild();
   document.fonts.ready.then(()=>{if(!playing&&!recording)draw()})})();
 })();
-</script><style>
+</script><script src="ocr/fill.js"></script><style>
 .appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
 .appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
 .appnav span{background:var(--chip);color:var(--ink)}
