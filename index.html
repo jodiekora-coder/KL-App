@@ -116,7 +116,7 @@ tr.win td{font-weight:700}
 
 <div class="wrap">
 <header class="top">
-  <div><div class="eyebrow">Kora Lawler Aesthetics · after every skin consultation</div>
+  <div><div class="eyebrow">Kora Lawler Aesthetics · after every skin consultation · <span id="app-version">version 19</span></div>
   <h1>Routine Video <em>Maker</em></h1></div>
 </header>
 
@@ -426,10 +426,10 @@ const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const IMG={};let LIB=[];
 const BUILTIN=[
- {id:'cleanser',name:'COSRX Advanced Snail Mucin Gel Cleanser',short:'COSRX gel cleanser',how:'Massage in for 1 to 2 minutes, then rinse with lukewarm water.'},
- {id:'torriden',name:'Torriden Dive-In Soothing Cream',short:'Torriden cream',how:'A gel cream feels lighter, so there’s less risk of clogged pores.'},
- {id:'spf',name:'COSRX Ultra-Light Invisible Sunscreen SPF50',short:'COSRX SPF50',how:'Two finger lengths, every morning, even when it’s grey out.'},
- {id:'laneige',name:'Laneige Water Bank Blue Hyaluronic Cream',short:'Laneige cream',how:'Press it in gently while your skin is still a little damp.'},
+ {id:'cleanser',name:'COSRX Advanced Snail Mucin Gel Cleanser',short:'COSRX gel cleanser',step:'Cleanse',how:'Massage in for 1 to 2 minutes, then rinse with lukewarm water.'},
+ {id:'torriden',name:'Torriden Dive-In Soothing Cream',short:'Torriden cream',step:'Moisturise',how:'A gel cream feels lighter, so there’s less risk of clogged pores.'},
+ {id:'spf',name:'COSRX Ultra-Light Invisible Sunscreen SPF50',short:'COSRX SPF50',step:'SPF',how:'Two finger lengths, every morning, even when it’s grey out.'},
+ {id:'laneige',name:'Laneige Water Bank Blue Hyaluronic Cream',short:'Laneige cream',step:'Moisturise',how:'Press it in gently while your skin is still a little damp.'},
  {id:'aqueous',name:'Aqueous cream',short:'Aqueous cream',how:'Keep this one for your body.'}
 ];
 const NOIMG=[
@@ -515,9 +515,9 @@ function renderSteps(){stepsEl.innerHTML='';
       else if(k){s.kind=k;if(k==='rx'){s.product='Your prescribed treatment';s.short='Prescribed step';s.img=null;s.how='As we discussed at your consultation. Full directions are in your written plan.'}changed(true)}
       else if(a==='del'){plan.steps.splice(i,1);changed(true)}
       else if(a==='up'||a==='down'){const same=order.filter(j=>plan.steps[j].time===s.time);const p=same.indexOf(i);const q=a==='up'?same[p-1]:same[p+1];if(q!=null){[plan.steps[i],plan.steps[q]]=[plan.steps[q],plan.steps[i]];changed(true)}}
-      else if(a==='photo'){openPicker((img,card)=>{s.img=img;const p=LIB.find(x=>x.id===img);if(card){s.product=card.product;s.short=card.short;if(card.how)s.how=card.how;if(card.title)s.title=card.title;if(s.kind==='rx')s.kind='new'}else if(p&&(!s.product||p.how)){s.product=p.name;s.short=p.short;if(p.how)s.how=p.how;if(p.step)s.title=p.step}changed(true)},s)}});
+      else if(a==='photo'){openPicker((img,card)=>{s.img=img;const p=img?allProducts().find(x=>x.id===img):null;if(card){s.product=card.product;s.short=card.short;if(card.how)s.how=card.how;if(card.title)s.title=card.title;if(s.kind==='rx')s.kind='new'}else if(p&&!/^My product \d+$/.test(p.name)){s.product=p.name;s.short=p.short;if(p.how)s.how=p.how;const st=p.step||(window.KLFill&&KLFill.guessStep(p.name));if(st)s.title=st;if(s.kind==='rx')s.kind='new'}changed(true)},s)}});
     node.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;s[k]=e.target.value;
-      if(k==='product'){const p=findProduct(s.product);if(p){if(p.id)s.img=p.id;s.short=p.short;if(p.how)s.how=p.how;changed(true);return}}
+      if(k==='product'){const p=findProduct(s.product);if(p){if(p.id)s.img=p.id;s.short=p.short;if(p.how)s.how=p.how;if(p.step)s.title=p.step;changed(true);return}}
       changed(false)});
     stepsEl.appendChild(node)}
   if(!plan.steps.length)stepsEl.appendChild(el('<p class="hint">No steps yet. Add a morning or evening step above.</p>'))}
@@ -581,9 +581,11 @@ async function addPhoto(e){const f=e.target.files[0];if(!f)return;status('Prepar
   let c=document.createElement('canvas');const s=Math.min(1,520/Math.max(im.width,im.height));c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
   cutout(c);c=trim(c);
   let data=c.toDataURL('image/webp',0.86);if(!data.startsWith('data:image/webp'))data=c.toDataURL('image/png');
-  const id='u'+Date.now();const nm=($('#pick-name').value||'').trim()||('My product '+(LIB.length+1));
+  // a plain product photo: try reading the label to work out which product it is
+  let info=null;if(!($('#pick-name').value||'').trim()&&window.KLFill&&KLFill.matchPhoto){try{status('Reading the label…');info=await KLFill.matchPhoto(f,allProducts())}catch(err){}}
+  const id='u'+Date.now();const nm=(info&&info.product)||($('#pick-name').value||'').trim()||('My product '+(LIB.length+1));
   LIB=LIB.filter(x=>x.name.toLowerCase()!==nm.toLowerCase());
-  IMG[id]=await toImg(data);LIB.push({id,name:nm,short:shortOf(nm),data});saveLib();renderLists();dlg.close();status('Photo saved as “'+nm+'”.');pickCb&&pickCb(id)}
+  IMG[id]=await toImg(data);LIB.push({id,name:nm,short:(info&&info.short)||shortOf(nm),how:(info&&info.how)||'',step:(info&&info.title)||'',data});saveLib();renderLists();dlg.close();status(info?'Recognised '+nm+' from the label. Check the details.':'Photo saved as “'+nm+'”. Type the product name in.');pickCb&&pickCb(id,info)}
 $('#upload').addEventListener('change',addPhoto);$('#snap').addEventListener('change',addPhoto);
 // ---------- preview ----------
 function loop(t0,s0){const go=now=>{if(!playing)return;T=s0+(now-t0)/1000;if(T>=R.total){T=R.total-0.01;playing=false;$('#play').textContent='▶ Play';draw();return}draw();raf=requestAnimationFrame(go)};raf=requestAnimationFrame(go)}

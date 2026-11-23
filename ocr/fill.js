@@ -181,7 +181,11 @@ async function readCard(file,onProgress){const raw=await loadCanvas(file,2200);c
   const products=(API()&&API().products())||[];let info=knownCard(c,products),text='';
   if(!info){const w=await getWorker(onProgress);const r=await w.recognize(cardTextCanvas(c));text=(r&&r.data&&r.data.text)||'';info=parseCard(text,products)}
   if(!info)return null;const th=cardThumb(c);return {...info,thumb:th,text}}
-Object.assign(window.KLFill,{readCard,parseCard,isCard,loadCanvas,findCard,cardHash});
+// a plain photo of one product: match all the label text at once against the product list
+async function matchPhoto(file,products){const text=await readPhoto(file,()=>{});const lt=toks(text);let best=null,bs=0;
+  for(const p of products){if(/^My product \d+$/.test(p.name))continue;const sc=scoreProduct(p,lt);if(sc>bs+0.001||(Math.abs(sc-bs)<=0.001&&best&&p.name.length>best.name.length)){bs=sc;best=p}}
+  if(!best||bs<0.6)return null;return {product:best.name,short:best.short||shortOf(best.name),how:best.how||'',title:best.step||guessStep(best.name),img:best.id||null,conf:bs>=0.95?'match':'close'}}
+Object.assign(window.KLFill,{readCard,matchPhoto,parseCard,isCard,loadCanvas,findCard,cardHash});
 const ORDER=['Oil cleanse','Cleanse','Exfoliate','Toner','Essence','Serum','Treat','Eye cream','Moisturise','SPF','Mask'];
 
 // ---------- review dialog ----------
