@@ -58,6 +58,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 label.f{display:flex;flex-direction:column;gap:5px;font:600 12px var(--sans);color:var(--muted);min-width:0}
 label.f input,label.f select,label.f textarea{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:400 15px var(--sans);color:var(--ink);width:100%;min-width:0}
 textarea{resize:vertical;min-height:58px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .sect-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .steps{display:flex;flex-direction:column;gap:12px}
 .step{border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;background:var(--panel)}
@@ -158,6 +159,14 @@ tr.win td{font-weight:700}
       <h2>Gentle rules</h2>
       <p class="hint" style="margin:6px 0 12px">Shown near the end. Up to three.</p>
       <div class="steps" id="tips"></div>
+    </div>
+
+    <div class="card">
+      <div class="sect-h"><h2>Advice from today</h2>
+        <div class="tools"><button class="btn small primary" id="mic" aria-pressed="false">🎤 Dictate</button><button class="btn small" id="advice-clear">Clear</button></div></div>
+      <p class="hint" style="margin:6px 0 12px">Your own advice from this consultation. It goes into the message and the printed routine, not the video. Leave out the client’s name. It isn’t saved, so it clears when you close the app.</p>
+      <label class="f"><span class="sr">Advice</span><textarea id="advice" rows="5" placeholder="e.g. Keep the exfoliating toner to three evenings a week for the first month."></textarea></label>
+      <p class="hint" id="mic-hint" style="margin-top:8px"></p>
     </div>
 
     <div class="card">
@@ -419,7 +428,19 @@ const NOIMG=[
  {name:'Beauty of Joseon Relief Sun SPF50+',short:'BoJ SPF',how:'Two finger lengths, every morning, last step.'},
  {name:'SKIN1004 Hyalu-Cica Water-Fit Sun Serum SPF50+',short:'SKIN1004 SPF',how:'Two finger lengths, every morning, last step.'},
  {name:'Biodance Bio-Collagen Real Deep Mask',short:'Biodance mask',how:'Once or twice a week, overnight, on clean skin.'},
- {name:'Laneige Water Sleeping Mask',short:'Laneige sleeping mask',how:'Once or twice a week as your last evening step.'}
+ {name:'Laneige Water Sleeping Mask',short:'Laneige sleeping mask',how:'Once or twice a week as your last evening step.'},
+ // products on the KL product cards
+ {name:'Biologique Recherche Lotion P50',short:'Lotion P50',step:'Exfoliate',how:'Sweep over your face on cotton after cleansing.'},
+ {name:'Biologique Recherche Lotion P50W',short:'Lotion P50W',step:'Exfoliate',how:'The gentler P50. Sweep over your face on cotton after cleansing.'},
+ {name:'Biologique Recherche Lotion P50 PIGM 400',short:'P50 PIGM 400',step:'Exfoliate',how:'Sweep over your face on cotton after cleansing.'},
+ {name:'Biologique Recherche Lait VIP O2',short:'Lait VIP O2',step:'Cleanse',how:'Massage onto your face to lift makeup and the day’s grime, then remove.'},
+ {name:'Biologique Recherche Lait S.R.',short:'Lait S.R.',step:'Cleanse',how:'A gentle cleansing milk. Massage in, then remove without stripping.'},
+ {name:'Biologique Recherche Emulsion Gel Biosensible',short:'Biosensible gel',step:'Moisturise',how:'A light, soothing gel. Apply after your toner and serum.'},
+ {name:'Biologique Recherche Masque Biofixine',short:'Masque Biofixine',step:'Mask',how:'Once or twice a week on clean skin. Leave on, then remove.'},
+ {name:'Obagi Hydrate Luxe',short:'Hydrate Luxe',step:'Moisturise',how:'A rich night cream. The last step of your evening routine.'},
+ {name:'Obagi Hydrate',short:'Obagi Hydrate',step:'Moisturise',how:'A light daily moisturiser. Apply after your serum.'},
+ {name:'numbuzin No.2 Rose PDRN Collagen 2X Plumping Serum',short:'numbuzin No.2 serum',step:'Serum',how:'After toner and essence, before moisturiser.'},
+ {name:'haruharu wonder Black Rice Probiotics Barrier Essence',short:'Black Rice essence',step:'Essence',how:'Pat in after cleansing, before your serum.'}
 ];
 const STEPNAMES=['Oil cleanse','Cleanse','Toner','Essence','Serum','Treat','Eye cream','Moisturise','SPF','Mask','Exfoliate'];
 // ---------- storage (product photos only) ----------
@@ -443,7 +464,7 @@ function fmt(s){s=Math.max(0,s);return Math.floor(s/60)+':'+String(Math.floor(s%
 function draw(){R.render(Math.min(T,R.total-0.01));$('#scrub').value=T;$('#time').textContent=fmt(T)+' / '+fmt(R.total)}
 function status(t){$('#status').textContent=t}
 // ---------- product helpers ----------
-function allProducts(){return [...BUILTIN.map(b=>({...b})),...LIB.map(l=>({id:l.id,name:l.name,short:l.short||l.name,how:l.how||''})),...NOIMG]}
+function allProducts(){return [...BUILTIN.map(b=>({...b})),...LIB.map(l=>({id:l.id,name:l.name,short:l.short||l.name,how:l.how||'',step:l.step||''})),...NOIMG]}
 function findProduct(name){const n=(name||'').trim().toLowerCase();return allProducts().find(p=>p.name.toLowerCase()===n)}
 function shortOf(name){const w=String(name||'').split(' ');return w.length>3?w.slice(0,2).join(' '):name}
 // ---------- steps UI ----------
@@ -479,7 +500,7 @@ function renderSteps(){stepsEl.innerHTML='';
       else if(k){s.kind=k;if(k==='rx'){s.product='Your prescribed treatment';s.short='Prescribed step';s.img=null;s.how='As we discussed at your consultation. Full directions are in your written plan.'}changed(true)}
       else if(a==='del'){plan.steps.splice(i,1);changed(true)}
       else if(a==='up'||a==='down'){const same=order.filter(j=>plan.steps[j].time===s.time);const p=same.indexOf(i);const q=a==='up'?same[p-1]:same[p+1];if(q!=null){[plan.steps[i],plan.steps[q]]=[plan.steps[q],plan.steps[i]];changed(true)}}
-      else if(a==='photo'){openPicker(img=>{s.img=img;const p=LIB.find(x=>x.id===img);if(p&&!s.product){s.product=p.name;s.short=p.short}changed(true)},s)}});
+      else if(a==='photo'){openPicker((img,card)=>{s.img=img;const p=LIB.find(x=>x.id===img);if(card){s.product=card.product;s.short=card.short;if(card.how)s.how=card.how;if(card.title)s.title=card.title;if(s.kind==='rx')s.kind='new'}else if(p&&(!s.product||p.how)){s.product=p.name;s.short=p.short;if(p.how)s.how=p.how;if(p.step)s.title=p.step}changed(true)},s)}});
     node.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;s[k]=e.target.value;
       if(k==='product'){const p=findProduct(s.product);if(p){if(p.id)s.img=p.id;s.short=p.short;if(p.how)s.how=p.how;changed(true);return}}
       changed(false)});
@@ -493,6 +514,7 @@ const REVIEW_DEFAULT='https://g.page/r/CY-yoifv1TPWEBM/review';
 function links(){let L={};try{L=JSON.parse(localStorage.getItem('kl-rv-links')||'{}')}catch(e){}if(!('review' in L))L.review=REVIEW_DEFAULT;return L}
 function renderMsg(){const fr=(plan.from||'').replace(/^Dr\s+/,'')||'Jodie';const L=links();
   let m=`Hi there, it was lovely to see you today. Here’s your personalised skin routine as a short video. Watch it once, then screenshot the shelves at the end so you have it handy in the bathroom.\n\nGo gently: one new product at a time, and if anything stings or irritates, stop and message me.`;
+  const adv=(plan.advice||'').trim();if(adv)m+=`\n\nMy advice from today:\n${adv}`;
   if(L.book)m+=`\n\nWhen you’re ready for your review appointment, you can book it here:\n${L.book}`;
   if(L.review)m+=`\n\nIf you have a minute, an honest Google review really helps a small clinic like mine:\n${L.review}`;
   m+=`\n\nAny questions at all, just reply here.\n${fr}\nKora Lawler Aesthetics`;
@@ -504,6 +526,7 @@ function printRoutine(){const o=ordered();let box=$('#printout');if(!box){box=do
   const tips=(plan.tips||[]).filter(x=>x&&x.trim());const fr=plan.from||'Dr Jodie';
   box.innerHTML=`<div class="ph"><div><h1>Your skincare routine</h1><div style="font-size:12pt;color:#5A6187">Made for you after your skin consultation</div></div><div class="brand">Kora Lawler<br>Aesthetics</div></div>
   <div class="cols">${col('am','Morning')}${col('pm','Evening')}</div>
+  ${(plan.advice||'').trim()?`<div class="rules"><div class="t">My advice from today</div><p style="margin:2mm 0 0;font:400 10pt/1.5 Inter,Arial,sans-serif;white-space:pre-line">${esc(plan.advice.trim())}</p></div>`:''}
   ${tips.length?`<div class="rules"><div class="t">A few gentle rules</div><ul>${tips.map(x=>`<li style="display:list-item;margin:0">${esc(x)}</li>`).join('')}</ul></div>`:''}
   <div class="foot">${esc(fr)} · Kora Lawler Aesthetics, Castletroy, Limerick · 085 183 3428<br>This routine was chosen for your skin at your consultation. If anything stings or irritates, stop and get in touch.</div>`;
   setTimeout(()=>window.print(),60)}
@@ -532,7 +555,13 @@ function cutout(c){const g=c.getContext('2d'),W=c.width,H=c.height,d=g.getImageD
 function trim(c){const g=c.getContext('2d'),d=g.getImageData(0,0,c.width,c.height).data;let x0=c.width,y0=c.height,x1=0,y1=0;
   for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++)if(d[(y*c.width+x)*4+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
   if(x1<=x0||y1<=y0)return c;const o=document.createElement('canvas');o.width=x1-x0+1;o.height=y1-y0+1;o.getContext('2d').drawImage(c,-x0,-y0);return o}
-async function addPhoto(e){const f=e.target.files[0];if(!f)return;status('Preparing photo…');const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)});
+async function addPhoto(e){const f=e.target.files[0];if(!f)return;status('Preparing photo…');
+  // a KL product card: read its name, step and how-to, and keep just the product photo
+  if(window.KLFill&&KLFill.readCard){try{status('Reading the product card…');const card=await KLFill.readCard(f,()=>{});
+    if(card){e.target.value='';const src=card.thumb||null;let id=card.img||null;
+      if(!id&&src){const k=Math.min(1,520/Math.max(src.width,src.height));const c=document.createElement('canvas');c.width=Math.round(src.width*k);c.height=Math.round(src.height*k);c.getContext('2d').drawImage(src,0,0,c.width,c.height);
+        let data=c.toDataURL('image/webp',0.86);if(!data.startsWith('data:image/webp'))data=c.toDataURL('image/png');id=await addLibImage(card.product,card.short,card.how,data,card.title)}
+      dlg.close();status('Filled in from the card: '+card.product+'. Check the details.');pickCb&&pickCb(id,card);return}}catch(err){}}const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)});
   const im=await toImg(url);e.target.value='';if(!im){status('That photo couldn’t be opened. Try another one.');return}
   let c=document.createElement('canvas');const s=Math.min(1,520/Math.max(im.width,im.height));c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
   cutout(c);c=trim(c);
@@ -618,7 +647,24 @@ document.querySelectorAll('input[name=style]').forEach(r=>r.addEventListener('ch
   const sv=()=>{const v={book:$('#lk-book').value.trim(),review:$('#lk-review').value.trim()};try{localStorage.setItem('kl-rv-links',JSON.stringify(v))}catch(e){}renderMsg()};
   $('#lk-book').addEventListener('input',sv);$('#lk-review').addEventListener('input',sv);$('#print').onclick=printRoutine;renderMsg()})();
 $('#copy').onclick=async()=>{const t=$('#msg').textContent;try{await navigator.clipboard.writeText(t);$('#copied').textContent='Copied'}catch(e){const r=document.createRange();r.selectNodeContents($('#msg'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('#copied').textContent='Selected. Tap Copy.'}};
-window.KL_ROUTINE_API={getPlan:()=>plan,products:allProducts,changed,status};
+// ---------- advice + dictation ----------
+(function(){const ta=$('#advice'),mic=$('#mic'),hint=$('#mic-hint');ta.addEventListener('input',()=>{plan.advice=ta.value;renderMsg()});
+  $('#advice-clear').onclick=()=>{ta.value='';plan.advice='';renderMsg()};
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,base='';
+  const stop=()=>{on=false;mic.setAttribute('aria-pressed','false');mic.textContent='🎤 Dictate';try{rec&&rec.stop()}catch(e){}};
+  mic.onclick=()=>{if(on){stop();hint.textContent='Stopped. Tap Dictate to add more.';return}
+    if(!SR){ta.focus();hint.textContent='Tap the microphone on the iPad keyboard and speak. Your words go straight into the box.';return}
+    rec=new SR();rec.lang='en-IE';rec.continuous=true;rec.interimResults=true;base=ta.value&&!/\s$/.test(ta.value)?ta.value+' ':ta.value;
+    rec.onresult=e=>{let fin='',mid='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=t;else mid+=t}
+      if(fin){base+=fin.trim().replace(/^./,c=>c.toUpperCase())+(/[.!?]$/.test(fin.trim())?' ':'. ')}ta.value=base+mid;plan.advice=ta.value;renderMsg()};
+    rec.onerror=e=>{stop();hint.textContent=e.error==='not-allowed'||e.error==='service-not-allowed'?'The microphone isn’t allowed here. Tap the microphone on the iPad keyboard instead.':'Dictation stopped. Tap Dictate to carry on, or use the microphone on the keyboard.'};
+    rec.onend=()=>{if(on){try{rec.start()}catch(e){stop()}}};
+    try{rec.start();on=true;mic.setAttribute('aria-pressed','true');mic.textContent='■ Stop';hint.textContent='Listening… speak your advice, then tap Stop. Check the words after.'}catch(e){ta.focus();hint.textContent='Tap the microphone on the iPad keyboard and speak.'}};})();
+async function addLibImage(name,short,how,data,step){const id='u'+Date.now()+Math.floor(Math.random()*1000);LIB=LIB.filter(x=>x.name.toLowerCase()!==name.toLowerCase());
+  IMG[id]=await toImg(data);LIB.push({id,name,short:short||shortOf(name),how:how||'',step:step||'',data});saveLib();renderLists();return id}
+window.KL_ROUTINE_API={getPlan:()=>plan,products:allProducts,changed,status,addLib:async(n,sh,h,d)=>{const im=await toImg(d);if(!im)return null;
+  let c=document.createElement('canvas');const k=Math.min(1,520/Math.max(im.width,im.height));c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+  let data=c.toDataURL('image/webp',0.86);if(!data.startsWith('data:image/webp'))data=c.toDataURL('image/png');return addLibImage(n,sh,h,data)}};
 // ---------- boot ----------
 (async()=>{loadLib();for(const [k,v] of Object.entries(window.KL_IMGS))IMG[k]=await toImg(v);for(const l of LIB)IMG[l.id]=await toImg(l.data);
   try{await Promise.all([document.fonts.load('60px "Instrument Serif"'),document.fonts.load('italic 60px "Instrument Serif"'),document.fonts.load('600 30px Inter'),document.fonts.load('700 30px Inter'),document.fonts.load('500 30px Inter')])}catch(e){}
