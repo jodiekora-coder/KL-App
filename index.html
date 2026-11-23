@@ -145,12 +145,12 @@ tr.win td{font-weight:700}
       <div class="row">
         <label class="f">Signed by<input id="from" value="Dr Jodie"></label>
       </div>
-      <p class="hint" style="margin-top:10px">No patient names go into the video. It just says “Hi there”, so it can never show the wrong name. Only your product photos are remembered, on this iPad.</p>
+      <p class="hint" style="margin-top:10px">No patient names go into the video. It just says “Hi there”, so it can never show the wrong name. Your product photos and the routine you’re working on are remembered on this iPad only, until you tap “Start new routine”.</p>
     </div>
 
     <div class="card">
       <div class="sect-h"><h2>Routine steps</h2>
-        <div class="tools"><button class="btn small" id="add-am">+ Morning step</button><button class="btn small" id="add-pm">+ Evening step</button></div></div>
+        <div class="tools"><button class="btn small" id="add-am">+ Morning step</button><button class="btn small" id="add-pm">+ Evening step</button><button class="btn small" id="new-routine">Start new routine</button></div></div>
       <p class="hint" style="margin:6px 0 14px">Got a list or a photo of the products? Tap “Fill from photo” and the steps fill in for you to check. Or tap the photo box to pick a product. Pick a product name from the list and the photo, short name and how-to fill in for you. Keep it to 6 to 8 steps.</p>
       <div class="steps" id="steps"></div>
     </div>
@@ -473,6 +473,11 @@ let plan={from:'Dr Jodie',subtitle:'Grounded in Korean skincare philosophy',cont
  {time:'pm',title:'Moisturise',kind:'keep',product:'Torriden Dive-In Soothing Cream',short:'Torriden cream',img:'torriden',how:'Finish with your moisturiser to keep your skin barrier comfortable.'}],
  tips:['Give your routine time before adding anything new.','Introduce one new product at a time.','If anything stings or irritates, stop and message me.']};
 let style='B',R=null,T=13,playing=false,recording=false,raf=0;
+// ---------- draft: keep the routine you're working on, on this iPad only (products, rules, style; no advice, no names) ----------
+const DEFAULT_PLAN=JSON.parse(JSON.stringify(plan));let draftTimer=0;
+function saveDraft(){clearTimeout(draftTimer);draftTimer=setTimeout(()=>{try{localStorage.setItem('kl-rv-draft',JSON.stringify({v:1,from:plan.from,steps:plan.steps,tips:plan.tips,style}))}catch(e){}},400)}
+function loadDraft(){try{const d=JSON.parse(localStorage.getItem('kl-rv-draft')||'null');if(!d||!Array.isArray(d.steps))return false;
+  plan.steps=d.steps;if(Array.isArray(d.tips))plan.tips=d.tips;if(d.from)plan.from=d.from;if(d.style&&['A','B','C'].includes(d.style))style=d.style;return true}catch(e){return false}}
 function ordered(){return {...plan,steps:[...plan.steps.filter(s=>s.time==='am'),...plan.steps.filter(s=>s.time==='pm')]}}
 function rebuild(){R=KLRoutine.makeRenderer(ctx,ordered(),IMG,style);$('#scrub').max=R.total.toFixed(2);if(T>R.total)T=0;draw()}
 function fmt(s){s=Math.max(0,s);return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')}
@@ -545,7 +550,7 @@ function printRoutine(){const o=ordered();let box=$('#printout');if(!box){box=do
   ${tips.length?`<div class="rules"><div class="t">A few gentle rules</div><ul>${tips.map(x=>`<li style="display:list-item;margin:0">${esc(x)}</li>`).join('')}</ul></div>`:''}
   <div class="foot">${esc(fr)} · Kora Lawler Aesthetics, Castletroy, Limerick · 085 183 3428<br>This routine was chosen for your skin at your consultation. If anything stings or irritates, stop and get in touch.</div>`;
   setTimeout(()=>window.print(),60)}
-function changed(full){plan.tips=(plan.tips||[]).slice(0,3);const p={...plan,tips:plan.tips.filter(x=>x&&x.trim())};
+function changed(full){saveDraft();plan.tips=(plan.tips||[]).slice(0,3);const p={...plan,tips:plan.tips.filter(x=>x&&x.trim())};
   if(full)renderSteps();renderMsg();R=KLRoutine.makeRenderer(ctx,{...ordered(),tips:p.tips},IMG,style);$('#scrub').max=R.total.toFixed(2);if(!playing&&!recording){if(T>R.total)T=R.total-0.5;draw()}}
 // ---------- picker ----------
 let pickCb=null;const dlg=$('#picker');
@@ -683,7 +688,10 @@ window.KL_ROUTINE_API={getPlan:()=>plan,products:allProducts,changed,status,addL
   let c=document.createElement('canvas');const k=Math.min(1,520/Math.max(im.width,im.height));c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
   let data=c.toDataURL('image/webp',0.86);if(!data.startsWith('data:image/webp'))data=c.toDataURL('image/png');return addLibImage(n,sh,h,data)}};
 // ---------- boot ----------
-(async()=>{loadLib();for(const [k,v] of Object.entries(window.KL_IMGS))IMG[k]=await toImg(v);for(const l of LIB)IMG[l.id]=await toImg(l.data);
+let nrArmed=0;$('#new-routine').onclick=()=>{const b=$('#new-routine');if(!nrArmed){nrArmed=setTimeout(()=>{nrArmed=0;b.textContent='Start new routine'},4000);b.textContent='Tap again to clear';return}
+  clearTimeout(nrArmed);nrArmed=0;b.textContent='Start new routine';const keepFrom=plan.from;const fresh=JSON.parse(JSON.stringify(DEFAULT_PLAN));plan.steps=fresh.steps;plan.tips=fresh.tips;plan.from=keepFrom;plan.advice='';
+  const a=$('#advice');if(a)a.value='';$('#from').value=plan.from;renderTips();changed(true);status('Started a new routine.')};
+(async()=>{loadLib();const hadDraft=loadDraft();if(hadDraft){$('#from').value=plan.from;const r=document.querySelector('input[name=style][value="'+style+'"]');if(r)r.checked=true}for(const [k,v] of Object.entries(window.KL_IMGS))IMG[k]=await toImg(v);for(const l of LIB)IMG[l.id]=await toImg(l.data);
   try{await Promise.all([document.fonts.load('60px "Instrument Serif"'),document.fonts.load('italic 60px "Instrument Serif"'),document.fonts.load('600 30px Inter'),document.fonts.load('700 30px Inter'),document.fonts.load('500 30px Inter')])}catch(e){}
   renderLists();renderSteps();renderTips();renderMsg();rebuild();
   document.fonts.ready.then(()=>{if(!playing&&!recording)draw()})})();
