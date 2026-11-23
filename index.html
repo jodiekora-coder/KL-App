@@ -164,7 +164,7 @@ tr.win td{font-weight:700}
     <div class="card">
       <div class="sect-h"><h2>Advice from today</h2>
         <div class="tools"><button class="btn small primary" id="mic" aria-pressed="false">🎤 Dictate</button><button class="btn small" id="advice-clear">Clear</button></div></div>
-      <p class="hint" style="margin:6px 0 12px">Your own advice from this consultation. It goes into the message and the printed routine, not the video. Leave out the client’s name. It isn’t saved, so it clears when you close the app.</p>
+      <p class="hint" style="margin:6px 0 12px">Your own advice from this consultation. It goes into the video (just before the checklist), the message and the printed routine. Leave out the client’s name. It isn’t saved, so it clears when you close the app.</p>
       <label class="f"><span class="sr">Advice</span><textarea id="advice" rows="5" placeholder="e.g. Keep the exfoliating toner to three evenings a week for the first month."></textarea></label>
       <p class="hint" id="mic-hint" style="margin-top:8px"></p>
     </div>
@@ -254,10 +254,19 @@ function timeline(plan){const sc=[];let t=0;const add=(type,d,extra)=>{sc.push(O
   for(const tm of ['am','pm']){const steps=plan.steps.filter(s=>s.time===tm);if(!steps.length)continue;add('section',DUR.section,{time:tm,count:steps.length});
     steps.forEach((s,i)=>add('step',s.kind==='rx'?DUR.rx:DUR.step,{time:tm,step:s,i,count:steps.length}))}
   if(plan.tips&&plan.tips.length)add('tips',DUR.tips);
+  const adv=String(plan.advice||'').trim();if(adv){const w=adv.split(/\s+/).length;add('advice',Math.max(5,Math.min(16,2.4+w/3.2)),{text:adv})}
   add('recap',DUR.recap);add('outro',DUR.outro);return{scenes:sc,total:t}}
 
 function stepLabel(s){return s.kind==='keep'?'Keep using':s.kind==='new'?'Add':s.kind==='rx'?'Your prescribed step':'Switch to'}
 function timeName(tm){return tm==='am'?'Morning':'Evening'}
+// today's advice: biggest serif size that fits the box, faded in, signed off
+function adviceFit(ctx,s,maxW,maxH){let px=60;while(px>34&&lineCount(ctx,s.text,serif(px),maxW)*px*1.22>maxH)px-=2;
+  ctx.save();ctx.font=serif(px);let lines=wrap(ctx,s.text,maxW);const max=Math.floor(maxH/(px*1.22));if(lines.length>max){lines=lines.slice(0,max);lines[max-1]=lines[max-1].replace(/\s*\S*$/,'')+'…'}ctx.restore();
+  return {px,lines,h:lines.length*px*1.22+60}}
+function adviceText(ctx,t,s,P,x,y,maxW,maxH,color,signColor,align){const {px,lines}=adviceFit(ctx,s,maxW,maxH);
+  const a=eo(k(t,.5,1.3));ctx.save();ctx.globalAlpha=a;ctx.translate(0,(1-a)*30);
+  lines.forEach((l,i)=>text(ctx,l,x,y+i*px*1.22,{font:serif(px),color,align:align||'left'}));
+  const sy=y+lines.length*px*1.22+40;ctx.globalAlpha=eo(k(t,1.2,1.9));text(ctx,'— '+(P.plan.from||'Dr Jodie'),align==='center'?540:x,sy,{font:serif(48),color:signColor,align:align||'left'});ctx.restore()}
 
 // =========== VARIANT A: Swap Card (navy, closest to Jo's Canva) ===========
 const A={bg(ctx){ctx.fillStyle=C.navy;ctx.fillRect(0,0,W,H);const g=ctx.createRadialGradient(W*0.7,H*0.35,50,W*0.6,H*0.45,1300);g.addColorStop(0,'rgba(255,255,255,.07)');g.addColorStop(1,'rgba(0,0,0,.18)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)},
@@ -294,6 +303,8 @@ const A={bg(ctx){ctx.fillStyle=C.navy;ctx.fillRect(0,0,W,H);const g=ctx.createRa
   ctx.save();ctx.globalAlpha*=eo(k(t,hasNow?2.4:1.3,hasNow?2.9:1.8));const hy=y+ch+90;rr(ctx,90,hy-60,900,2,1);
   text(ctx,st.how,540,hy+10,{font:serif(52,true),color:C.cream,align:'center',maxW:860,lh:62});ctx.restore();
   ctx.restore()},
+ advice(ctx,t,s,P){A.bg(ctx);A.header(ctx,P,1);text(ctx,'My advice for you',540,500,{font:serif(96),color:C.cream,align:'center'});
+  ctx.fillStyle=C.gold;rr(ctx,480,555,120,6,3);ctx.fill();adviceText(ctx,t,s,P,140,700,800,820,C.cream,C.gold)},
  tips(ctx,t,s,P){A.bg(ctx);A.header(ctx,P,1);text(ctx,'A few gentle rules',540,520,{font:serif(96),color:C.cream,align:'center'});
   P.plan.tips.forEach((tp,i)=>{const a=eo(k(t,.4+i*.6,.9+i*.6));ctx.save();ctx.globalAlpha=a;const y=720+i*270;ctx.translate((1-a)*60,0);
    brushCircle(ctx,170,y+20,48,a,C.gold,10,i+3);text(ctx,String(i+1),170,y+42,{font:serif(70),color:C.gold,align:'center'});text(ctx,tp,260,y+5,{font:serif(54),color:C.cream,maxW:740,lh:62});ctx.restore()})},
@@ -346,6 +357,8 @@ const B={bg(ctx,tm){const dark=tm==='pm';ctx.fillStyle=dark?C.navy:C.cream;ctx.f
     if(ni){drawContain(ctx,ni,x,yy-34,64,72);x+=74}text(ctx,lbl,x,yy+14,{font:serif(44),color:C.navy});strike(ctx,x-4,yy+2,lw+8,eo(k(t,1.3,1.7)),C.navy);ctx.restore();yy+=110}
   else if(st.kind==='keep'||st.kind==='new'){const lbl=st.kind==='keep'?'KEEP USING':'NEW STEP';ctx.font=sans(24,700);const w=ctx.measureText(lbl).width+80;ctx.save();ctx.globalAlpha*=eo(k(t,.9,1.3));rr(ctx,540-w/2,yy-34,w,64,32);ctx.fillStyle=C.gold;ctx.fill();text(ctx,lbl,540,yy+8,{font:sans(24,700),color:C.navy,align:'center',ls:3});ctx.restore();yy+=90}
   ctx.save();ctx.globalAlpha*=eo(k(t,1.3,1.8));text(ctx,st.how,540,yy+30,{font:serif(48,true),color:ink,align:'center',maxW:880,lh:58});ctx.restore();ctx.restore()},
+ advice(ctx,t,s,P){B.bg(ctx,'am');B.header(ctx,P,false);text(ctx,'My advice for you',540,500,{font:serif(104),color:C.navy,align:'center'});
+  rr(ctx,90,600,900,Math.max(360,adviceFit(ctx,s,760,780).h+150),40);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=C.gold;ctx.lineWidth=3;ctx.stroke();adviceText(ctx,t,s,P,160,720,760,780,C.navy,'#B98600')},
  tips(ctx,t,s,P){B.bg(ctx,'am');B.header(ctx,P,false);text(ctx,'Shelf rules',540,520,{font:serif(110),color:C.navy,align:'center'});
   P.plan.tips.forEach((tp,i)=>{const a=eo(k(t,.4+i*.6,.9+i*.6));ctx.save();ctx.globalAlpha=a;const y=700+i*280;rr(ctx,90,y,900,230,36);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=C.gold;ctx.lineWidth=3;ctx.stroke();
    tick(ctx,175,y+115,70,k(t,.6+i*.6,1.1+i*.6),C.gold,12);text(ctx,tp,250,y+95,{font:serif(52),color:C.navy,maxW:700,lh:60});ctx.restore()})},
@@ -385,6 +398,8 @@ const Cn={bg(ctx){ctx.fillStyle=C.soft;ctx.fillRect(0,0,W,H);ctx.fillStyle=C.nav
    const hy=y+620;ctx.save();ctx.globalAlpha=eo(k(t,1.9,2.2));text(ctx,'How:',140,hy,{font:sans(26,700),color:C.gold,ls:3});ctx.restore();
    text(ctx,st.how,140,hy+64,{font:serif(52,true),color:C.navy,maxW:800,lh:62,chars:Math.floor(k(t,2.0,3.6)*(st.how||'').length)});
    tick(ctx,880,560,90,k(t,s.dur-1.3,s.dur-.9),C.gold,14)},s.i+(s.time==='pm'?3:0))},
+ advice(ctx,t,s,P){Cn.bg(ctx);Cn.header(ctx,P);Cn.card(ctx,t,s.dur,()=>{text(ctx,'My advice for you',140,560,{font:serif(96),color:C.navy});
+   ctx.fillStyle=C.gold;rr(ctx,140,600,120,6,3);ctx.fill();adviceText(ctx,t,s,P,140,720,780,800,C.navy,'#B98600')},7)},
  tips(ctx,t,s,P){Cn.bg(ctx);Cn.header(ctx,P);Cn.card(ctx,t,s.dur,()=>{text(ctx,'A few gentle rules',140,560,{font:serif(96,true),color:C.navy});
    P.plan.tips.forEach((tp,i)=>{const a=eo(k(t,.6+i*.6,1.1+i*.6));ctx.save();ctx.globalAlpha=a;const y=720+i*240;text(ctx,'•',140,y+30,{font:serif(80),color:C.gold});text(ctx,tp,200,y+20,{font:serif(54),color:C.navy,maxW:700,lh:62});ctx.restore()})},7)},
  recap(ctx,t,s,P){Cn.bg(ctx);Cn.header(ctx,P);Cn.card(ctx,t,s.dur+5,()=>{text(ctx,'Your checklist',140,520,{font:serif(96,true),color:C.navy});text(ctx,'SCREENSHOT THIS',140,580,{font:sans(24,700),color:C.gold,ls:6});
@@ -586,7 +601,7 @@ function scheduleAudio(ac,dest,scenes,total,from){stopAudio();const base=ac.curr
     const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();f.type='lowpass';f.frequency.setValueAtTime(400,t);f.frequency.linearRampToValueAtTime(2200,t+.3);f.frequency.linearRampToValueAtTime(300,t+.6);g.gain.value=.12;s.buffer=b;s.connect(f).connect(g).connect(out);s.start(t);live.push(s)};
   music(ac,out,base,from,total);
   const notes=[880,988,1109,1175,1319,1480];let ni=0;
-  for(const s of scenes){if(['section','outro','recap','tips'].includes(s.type))whoosh(Math.max(0,s.start-.2));
+  for(const s of scenes){if(['section','outro','recap','tips','advice'].includes(s.type))whoosh(Math.max(0,s.start-.2));
     if(s.type==='section')tone(1175,s.start+.3,1.0,.12);
     if(s.type==='step'){tone(notes[ni%6],s.start+.15,1.0,.12);pop(s.start+1.9);ni++}
     if(s.type==='outro'){tone(1175,s.start+.4,1.6,.12);tone(1480,s.start+.55,1.6,.12)}}}
@@ -648,15 +663,15 @@ document.querySelectorAll('input[name=style]').forEach(r=>r.addEventListener('ch
   $('#lk-book').addEventListener('input',sv);$('#lk-review').addEventListener('input',sv);$('#print').onclick=printRoutine;renderMsg()})();
 $('#copy').onclick=async()=>{const t=$('#msg').textContent;try{await navigator.clipboard.writeText(t);$('#copied').textContent='Copied'}catch(e){const r=document.createRange();r.selectNodeContents($('#msg'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('#copied').textContent='Selected. Tap Copy.'}};
 // ---------- advice + dictation ----------
-(function(){const ta=$('#advice'),mic=$('#mic'),hint=$('#mic-hint');ta.addEventListener('input',()=>{plan.advice=ta.value;renderMsg()});
-  $('#advice-clear').onclick=()=>{ta.value='';plan.advice='';renderMsg()};
+(function(){const ta=$('#advice'),mic=$('#mic'),hint=$('#mic-hint');ta.addEventListener('input',()=>{plan.advice=ta.value;changed(false)});
+  $('#advice-clear').onclick=()=>{ta.value='';plan.advice='';changed(false)};
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,on=false,base='';
   const stop=()=>{on=false;mic.setAttribute('aria-pressed','false');mic.textContent='🎤 Dictate';try{rec&&rec.stop()}catch(e){}};
   mic.onclick=()=>{if(on){stop();hint.textContent='Stopped. Tap Dictate to add more.';return}
     if(!SR){ta.focus();hint.textContent='Tap the microphone on the iPad keyboard and speak. Your words go straight into the box.';return}
     rec=new SR();rec.lang='en-IE';rec.continuous=true;rec.interimResults=true;base=ta.value&&!/\s$/.test(ta.value)?ta.value+' ':ta.value;
     rec.onresult=e=>{let fin='',mid='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=t;else mid+=t}
-      if(fin){base+=fin.trim().replace(/^./,c=>c.toUpperCase())+(/[.!?]$/.test(fin.trim())?' ':'. ')}ta.value=base+mid;plan.advice=ta.value;renderMsg()};
+      if(fin){base+=fin.trim().replace(/^./,c=>c.toUpperCase())+(/[.!?]$/.test(fin.trim())?' ':'. ')}ta.value=base+mid;plan.advice=ta.value;changed(false)};
     rec.onerror=e=>{stop();hint.textContent=e.error==='not-allowed'||e.error==='service-not-allowed'?'The microphone isn’t allowed here. Tap the microphone on the iPad keyboard instead.':'Dictation stopped. Tap Dictate to carry on, or use the microphone on the keyboard.'};
     rec.onend=()=>{if(on){try{rec.start()}catch(e){stop()}}};
     try{rec.start();on=true;mic.setAttribute('aria-pressed','true');mic.textContent='■ Stop';hint.textContent='Listening… speak your advice, then tap Stop. Check the words after.'}catch(e){ta.focus();hint.textContent='Tap the microphone on the iPad keyboard and speak.'}};})();
