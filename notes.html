@@ -1,0 +1,480 @@
+<!doctype html><html lang="en-IE"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="KL App">
+<meta name="theme-color" content="#FFFBF2"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.webmanifest">
+<title>KL Clinical Notes</title>
+<style>
+@font-face{font-family:"Instrument Serif";font-weight:400;src:url(inv/instrument-serif.ttf) format("truetype")}
+:root{
+  --navy:#00167A;--gold:#FFC83C;--cream:#FFFBF2;
+  --bg:#FFFBF2;--panel:#FFFFFF;--ink:#0B1240;--muted:#5A6187;--line:#E6DFCC;--chip:#FFF3D1;--goldtext:#8A6400;--accent:#00167A;--accent-ink:#FFFBF2;--field:#FFFFFF;
+  --serif:"Instrument Serif",Georgia,serif;--sans:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--accent:#FFC83C;--accent-ink:#000E52;--field:#06155E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000E52;--panel:#0A1D6E;--ink:#FFFBF2;--muted:#B9BEDA;--line:#24368A;--chip:#1B2C82;--goldtext:#FFC83C;--accent:#FFC83C;--accent-ink:#000E52;--field:#06155E;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding:20px max(16px,env(safe-area-inset-right,0px)) 130px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:900px;margin:0 auto;display:grid;gap:16px}
+header{border-bottom:1px solid var(--line);padding-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.eyebrow{font:600 11px/1.3 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{font:400 clamp(34px,5vw,52px)/1 var(--serif);margin:6px 0 0}
+h1 em{font-style:normal;color:var(--goldtext)}
+h2{font:400 26px/1.1 var(--serif);margin:0}
+.sub{margin:0;color:var(--muted);font-size:13px;max-width:70ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px;min-width:0}
+.card.off{opacity:.75}
+.sect-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sect-h h2{border-left:3px solid var(--gold);padding-left:10px}
+.tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:5px;font:600 12px var(--sans);color:var(--muted);min-width:0}
+input,select,textarea,button{font:inherit;color:inherit}
+label.f input,label.f select,textarea{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:400 16px var(--sans);color:var(--ink);width:100%;min-width:0}
+textarea{resize:vertical;min-height:96px;line-height:1.45;font:400 16px/1.45 var(--sans)}
+textarea.big{min-height:180px}
+.tick{display:flex;gap:10px;align-items:flex-start;font-size:15px;cursor:pointer;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--chip)}
+.tick input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--navy)}
+.btn{border:1.5px solid var(--accent);background:transparent;color:var(--ink);padding:10px 16px;border-radius:999px;font:600 14px var(--sans);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.small{padding:6px 12px;font-size:13px}
+.btn.big{padding:14px 22px;font-size:16px}
+.btn[aria-pressed="true"]{background:#B3261E;border-color:#B3261E;color:#fff}
+.btn:disabled{opacity:.5}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;align-self:start}
+.seg button{border:0;background:transparent;padding:8px 14px;font:600 13px var(--sans);cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.warn{font-size:13px;background:var(--chip);border-radius:10px;padding:8px 10px;margin:0}
+.privacy{font-size:13px;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;color:var(--muted);margin:0}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.ph{border:1px solid var(--line);border-radius:12px;padding:8px;display:grid;gap:6px}
+.ph img{width:100%;height:160px;object-fit:contain;background:var(--chip);border-radius:8px}
+.ph input{background:var(--field);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;width:100%}
+.sig{border:1px dashed var(--muted);border-radius:10px;background:#fff;touch-action:none;width:100%;height:150px;display:block}
+.status{min-height:1.4em;font-size:14px;color:var(--muted);margin:0}
+.preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.preview img{width:100%;border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 18px rgba(0,14,82,.12)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.cheat{font-size:13px;color:var(--muted);margin:0;padding-left:18px}
+.cheat b{color:var(--ink)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+.appnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:8px max(16px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px))}
+.appnav a,.appnav span{flex:0 1 200px;color:var(--muted);font:600 13px var(--sans);padding:8px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;text-align:center}
+.appnav span{background:var(--chip);color:var(--ink)}
+.appnav svg{width:24px;height:24px}
+
+/* ---------- A4 PDF pages (always light, built off-screen) ---------- */
+.pg{width:794px;height:1123px;position:relative;background:#FFFBF2;color:#00167A;font-family:"Instrument Serif",Georgia,serif;overflow:hidden}
+.pg .bd{position:absolute;left:56px;right:56px;top:44px}
+.pg .ft{position:absolute;left:56px;right:56px;bottom:30px;border-top:1.5px solid #FFC83C;padding-top:9px;text-align:center;font-size:11.5px;line-height:1.5;color:#3A4A9A}
+.pg .pn{position:absolute;right:56px;bottom:12px;font-size:10px;color:#8A90B5}
+.blk{display:flow-root}
+.hd{display:flex;gap:22px;align-items:center;padding-bottom:16px;border-bottom:1px solid #E6DFCC;margin-bottom:18px}
+.hd img{width:150px;height:auto;flex:none}
+.hd .ey{font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:#00167A}
+.hd h1{font:400 34px/1.1 "Instrument Serif",Georgia,serif;margin:4px 0 4px;color:#00167A}
+.hd .cf{font-size:13.5px;color:#8A6400}
+.tb{border:1px solid #F1E3B5;border-top:3px solid #FFC83C;border-radius:8px;background:#FFFDF7;margin-bottom:14px}
+.tb .r{display:grid;grid-template-columns:170px 1fr;gap:12px;padding:6px 14px;font-size:13.5px;border-top:1px solid #F2EBD8}
+.tb .r:first-child{border-top:0}
+.tb .r span:first-child{color:#3A4A9A}
+.sh{margin:14px 0 6px;border-left:3px solid #FFC83C;padding-left:10px;font-size:22px;line-height:1.15;color:#00167A}
+.bl{display:grid;grid-template-columns:14px 1fr;gap:6px;font-size:13.5px;line-height:1.45;margin:0 0 4px 4px}
+.bl i{width:7px;height:7px;border-radius:50%;background:#FFC83C;margin-top:6px}
+.pl{font-size:13.5px;line-height:1.45;margin:0 0 4px}
+.kv{font-size:13.5px;line-height:1.45;margin:0 0 4px}
+.kv b{font-weight:400;color:#8A6400}
+.na{background:#00167A;color:#FFFBF2;border-radius:10px;padding:11px 16px;font-size:15px;margin:12px 0 4px}
+.na b{font-weight:400;color:#FFC83C}
+.prow{display:flex;gap:14px;margin:6px 0 8px}
+.prow figure{margin:0;flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.prow img{border-radius:6px;display:block}
+.prow figcaption{font-size:12px;color:#3A4A9A;text-align:center}
+.sg{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:26px;margin-top:22px;align-items:end}
+.sg .c{display:flex;flex-direction:column}
+.sg .v{min-height:62px;display:flex;align-items:flex-end;font-size:15px;padding-bottom:3px;border-bottom:1px solid #00167A}
+.sg .v img{display:block}
+.sg .l{font-size:12px;color:#3A4A9A;margin-top:4px}
+</style></head><body>
+<div class="wrap">
+<header>
+  <div><div class="eyebrow">Kora Lawler Aesthetics · clinic only · <span>version 20</span></div>
+  <h1>Clinical <em>notes</em></h1></div>
+  <button class="btn" id="new-note" type="button">Start new note</button>
+</header>
+<p class="privacy">🔒 Stays on this iPad only. Nothing is uploaded and nothing goes into the app’s code. The note is wiped when you tap <b>Start new note</b>, and an unfinished note is wiped by itself after 3 days. Save the PDF to Clever Clinic before you start the next one.</p>
+
+<section class="card" aria-labelledby="h-visit">
+  <div class="sect-h"><h2 id="h-visit">Patient and visit</h2>
+    <div class="seg" role="group" aria-label="Entry type"><button type="button" data-entry="note">Clinical note</button><button type="button" data-entry="addendum">Addendum</button></div></div>
+  <div class="row">
+    <label class="f">Patient initials<input id="f-patient" autocomplete="off" autocapitalize="characters" placeholder="Initials only"></label>
+    <label class="f">Date of consultation<input id="f-date" type="date"></label>
+    <label class="f">Time of consultation<input id="f-time" type="time"></label>
+  </div>
+  <div class="row" id="addendum-row">
+    <label class="f">Reason for delay<input id="f-delay" placeholder="e.g. Finalisation of full details after clinic visit delayed."></label>
+  </div>
+  <label class="tick"><input type="checkbox" id="t-consent"><span>Consent confirmed: verbal and written consent obtained before proceeding</span></label>
+</section>
+
+<section class="card" aria-labelledby="h-dict">
+  <div class="sect-h"><h2 id="h-dict">Dictate the whole note</h2>
+    <div class="tools"><button class="btn big primary" id="mic-all" type="button" aria-pressed="false">🎤 Dictate</button></div></div>
+  <p class="hint">Tap Dictate and speak the whole note. Say each heading, then pause, and the words sort themselves into the right section when you tap Stop. Each sentence becomes a bullet point.</p>
+  <ul class="cheat">
+    <li>Headings: <b>Treatment decision</b> · <b>Procedure</b> (or “Procedure: Restylane skin boosters”) · <b>Aftercare</b> · <b>Skin consultation</b> · <b>Skincare routine</b> · <b>Paid partnership</b> · <b>Plan and next visit</b></li>
+    <li>Fields: <b>“Product: …”</b> · <b>“Areas treated: …”</b> · <b>“Next appointment: …”</b></li>
+    <li>Say <b>“next point”</b> to start a new bullet.</li>
+  </ul>
+  <textarea id="all" class="big" placeholder="Your words appear here. If the Dictate button won’t listen, tap here and use the microphone on the iPad keyboard, then tap Sort into sections."></textarea>
+  <div class="actions"><button class="btn" id="sort" type="button">Sort into sections</button><button class="btn small" id="undo-sort" type="button" hidden>Undo sort</button><p class="status" id="mic-hint"></p></div>
+</section>
+
+<div id="sections" style="display:grid;gap:16px"></div>
+
+<section class="card" aria-labelledby="h-photos">
+  <div class="sect-h"><h2 id="h-photos">Clinical photos</h2>
+    <div class="tools"><label class="btn small primary" style="display:inline-block">📷 Add photos<input id="photo-in" type="file" accept="image/*" multiple hidden></label></div></div>
+  <p class="hint">For the clinical record only, never for marketing. Photos stay on this iPad and are printed at the end of the PDF.</p>
+  <div class="photos" id="photos"></div>
+  <label class="tick" id="photo-consent-row" hidden><input type="checkbox" id="t-photo"><span>Photo consent confirmed for the clinical record</span></label>
+</section>
+
+<section class="card" aria-labelledby="h-sign">
+  <div class="sect-h"><h2 id="h-sign">Sign</h2></div>
+  <div class="row">
+    <label class="f">Signed by<input id="me-name" autocomplete="off"></label>
+    <label class="f">Role<input id="me-role" autocomplete="off"></label>
+    <label class="f">Medical Council registration no.<input id="me-imc" autocomplete="off"></label>
+  </div>
+  <canvas id="sig" class="sig" aria-label="Sign here with your finger or Pencil"></canvas>
+  <div class="actions"><button class="btn small" id="sig-clear" type="button">Clear signature</button>
+    <label class="tick" style="padding:6px 10px"><input type="checkbox" id="sig-keep"><span>Keep my signature on this iPad</span></label></div>
+  <p class="hint">Your name, role, registration number and signature are saved on this iPad for next time. They are not patient details.</p>
+</section>
+
+<section class="card" aria-labelledby="h-pdf">
+  <div class="sect-h"><h2 id="h-pdf">PDF</h2></div>
+  <p class="warn" id="checks" hidden></p>
+  <div class="actions"><button class="btn big primary" id="make" type="button">Make PDF</button><p class="status" id="status"></p></div>
+  <div id="result" hidden style="display:grid;gap:12px">
+    <div class="actions"><button class="btn primary" id="send" type="button">Save or send PDF</button><button class="btn" id="done-new" type="button">Saved it. Start new note</button></div>
+    <p class="hint">Tap <b>Save or send PDF</b> and choose Save to Files, then upload it to the patient’s record in Clever Clinic.</p>
+    <div class="preview" id="preview"></div>
+  </div>
+</section>
+</div>
+
+<nav class="appnav" aria-label="App sections">
+  <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="M16 10l5-3v10l-5-3"/></svg>Routine videos</a>
+  <a href="invoice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/></svg>Invoices</a>
+  <a href="stock.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>Stock</a>
+  <span aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M12 9v6"/></svg>Clinical notes</span>
+  <a href="policies.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Policies</a>
+</nav>
+
+<script src="inv/html2canvas.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const longDate=iso=>{if(!iso)return '';const [y,m,d]=iso.split('-').map(Number);return d+' '+MONTHS[m-1]+' '+y};
+const shortDate=iso=>{if(!iso)return '';const [y,m,d]=iso.split('-');return d+'/'+m+'/'+y};
+const KEEP_MS=3*24*3600*1000;
+
+/* ---------- sections (order = PDF order) ---------- */
+const SECTIONS=[
+  {k:'decision',t:'Treatment decision'},
+  {k:'procedure',t:'Procedure'},
+  {k:'aftercare',t:'Recommended aftercare'},
+  {k:'consult',t:'Skin consultation'},
+  {k:'routine',t:'Skincare routine'},
+  {k:'content',t:'Content and paid partnership',optional:true},
+  {k:'plan',t:'Plan and next visit'}];
+const HEADINGS={
+  decision:['treatment decision','decision','treatment decisions'],
+  procedure:['procedure','the procedure','procedure notes','procedures'],
+  aftercare:['aftercare','after care','recommended aftercare','recommended after care','after-care'],
+  consult:['skin consultation','skincare consultation','skin care consultation','consultation','skin consult'],
+  routine:['skincare routine','skin care routine','routine','skin routine'],
+  content:['content','paid partnership','content and paid partnership','partnership','content and partnership','content or paid partnership'],
+  plan:['plan','plan and next visit','next visit','planned visit','plan and next steps','follow up','follow-up','planned and next visit']};
+const LONG_HEADINGS={};for(const [k,a] of Object.entries(HEADINGS))LONG_HEADINGS[k]=a.filter(h=>h.includes(' ')&&!['the procedure','follow up','next visit','planned visit'].includes(h));
+
+/* ---------- state ---------- */
+const BLANK=()=>({entry:'',patient:'',date:today(),time:'',delay:'',consent:false,videoSent:false,photoConsent:false,
+  procName:'',product:'',areas:'',next:'',contentOn:false,all:'',s:{},photos:[],sig:null,updated:Date.now()});
+let N=BLANK();
+let ME={name:'Dr Jodie',role:'Founder & Medical Director',imc:'IMC 426937',keep:true,sig:null};
+try{const m=JSON.parse(localStorage.getItem('kl-notes-me')||'null');if(m)ME=Object.assign(ME,m)}catch(e){}
+const saveMe=()=>{try{localStorage.setItem('kl-notes-me',JSON.stringify(ME))}catch(e){}};
+
+// draft: IndexedDB on this device only, wiped by Start new note or after 3 days
+let dbP=null;
+function db(){if(dbP)return dbP;dbP=new Promise((res,rej)=>{const r=indexedDB.open('kl-notes',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return dbP}
+async function idb(mode,fn){const d=await db();return new Promise((res,rej)=>{const tx=d.transaction('kv',mode);const st=tx.objectStore('kv');const r=fn(st);tx.oncomplete=()=>res(r&&r.result);tx.onerror=()=>rej(tx.error)})}
+let saveT=0;
+function save(){N.updated=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{idb('readwrite',s=>s.put(N,'draft')).catch(()=>{})},350);made=null;$('result').hidden=true}
+async function wipe(){clearTimeout(saveT);try{await idb('readwrite',s=>s.delete('draft'))}catch(e){}}
+
+/* ---------- render the form ---------- */
+function sectionCard(sec){
+  const el=document.createElement('section');el.className='card';el.dataset.k=sec.k;
+  let extra='';
+  if(sec.k==='procedure')extra=`<div class="row"><label class="f">Procedure name (goes in the heading)<input data-f="procName" placeholder="e.g. Restylane Skinboosters"></label>
+    <label class="f">Product name<input data-f="product" placeholder="Product used"></label>
+    <label class="f">Areas treated (optional)<input data-f="areas" placeholder="e.g. both cheeks"></label></div>`;
+  if(sec.k==='routine')extra=`<label class="tick"><input type="checkbox" data-t="videoSent"><span>Personalised skincare routine video sent to patient</span></label>`;
+  if(sec.k==='plan')extra=`<label class="f">Next appointment (navy box on the PDF)<input data-f="next" placeholder="e.g. SkinPen microneedling, 8 December 2026 at 11 a.m."></label>`;
+  const opt=sec.optional?`<button class="btn small" type="button" data-toggle>${N.contentOn?'Remove section':'Add this section'}</button>`:'';
+  el.innerHTML=`<div class="sect-h"><h2>${esc(sec.t)}</h2><div class="tools">${opt}<button class="btn small" type="button" data-mic aria-pressed="false">🎤 Dictate</button></div></div>
+    <div data-body>${extra}<textarea data-s="${sec.k}" placeholder="One point per line. Leave empty to leave this section out of the PDF."></textarea>
+    <p class="hint">A line ending in a colon prints as plain text; every other line is a bullet point.</p></div>`;
+  return el}
+function renderSections(){const host=$('sections');host.innerHTML='';
+  for(const sec of SECTIONS){const el=sectionCard(sec);host.appendChild(el);
+    el.querySelector('textarea').value=N.s[sec.k]||'';
+    el.querySelectorAll('[data-f]').forEach(i=>{i.value=N[i.dataset.f]||'';i.addEventListener('input',()=>{N[i.dataset.f]=i.value;save()})});
+    el.querySelectorAll('[data-t]').forEach(i=>{i.checked=!!N[i.dataset.t];i.addEventListener('change',()=>{N[i.dataset.t]=i.checked;save()})});
+    el.querySelector('textarea').addEventListener('input',e=>{N.s[sec.k]=e.target.value;save()});
+    const mb=el.querySelector('[data-mic]');mb.onclick=()=>dictate(el.querySelector('textarea'),mb,v=>{N.s[sec.k]=v;save()});
+    if(sec.optional){const b=el.querySelector('[data-toggle]');const body=el.querySelector('[data-body]');
+      const apply=()=>{body.hidden=!N.contentOn;mb.hidden=!N.contentOn;el.classList.toggle('off',!N.contentOn);b.textContent=N.contentOn?'Remove section':'Add this section'};
+      b.onclick=()=>{N.contentOn=!N.contentOn;apply();save()};apply()}}}
+function renderPhotos(){const host=$('photos');host.innerHTML='';
+  N.photos.forEach((p,i)=>{const d=document.createElement('div');d.className='ph';
+    d.innerHTML=`<img alt="Clinical photo ${i+1}"><input placeholder="Caption (optional)" aria-label="Caption for photo ${i+1}"><button class="btn small" type="button">Remove</button>`;
+    d.querySelector('img').src=p.data;const c=d.querySelector('input');c.value=p.cap||'';c.oninput=()=>{p.cap=c.value;save()};
+    d.querySelector('button').onclick=()=>{N.photos.splice(i,1);renderPhotos();save()};host.appendChild(d)});
+  $('photo-consent-row').hidden=!N.photos.length}
+function renderVisit(){
+  if(!N.entry)N.entry=(N.date&&N.date<today())?'addendum':'note';
+  document.querySelectorAll('[data-entry]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.entry===N.entry)));
+  $('addendum-row').hidden=N.entry!=='addendum';
+  $('f-patient').value=N.patient;$('f-date').value=N.date;$('f-time').value=N.time;$('f-delay').value=N.delay;$('t-consent').checked=N.consent;
+  $('all').value=N.all||'';$('t-photo').checked=N.photoConsent}
+function renderAll(){renderVisit();renderSections();renderPhotos()}
+document.querySelectorAll('[data-entry]').forEach(b=>b.onclick=()=>{N.entry=b.dataset.entry;N.entryPicked=true;renderVisit();save()});
+$('f-patient').oninput=e=>{N.patient=e.target.value.toUpperCase().slice(0,8);e.target.value=N.patient;save()};
+$('f-date').oninput=e=>{N.date=e.target.value;if(!N.entryPicked){N.entry='';renderVisit()}save()};
+$('f-time').oninput=e=>{N.time=e.target.value;save()};
+$('f-delay').oninput=e=>{N.delay=e.target.value;save()};
+$('t-consent').onchange=e=>{N.consent=e.target.checked;save()};
+$('t-photo').onchange=e=>{N.photoConsent=e.target.checked;save()};
+$('all').oninput=e=>{N.all=e.target.value;save()};
+
+/* ---------- dictation (iPad Safari speech recognition, keyboard microphone as fallback) ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,recOn=false,recBtn=null,recDone=null;
+function stopRec(){recOn=false;if(recBtn){recBtn.setAttribute('aria-pressed','false');recBtn.textContent='🎤 Dictate'}try{rec&&rec.stop()}catch(e){}const d=recDone;recBtn=null;recDone=null;if(d)d()}
+function dictate(ta,btn,onText,onStop){
+  const hint=$('mic-hint');
+  if(recOn){const same=recBtn===btn;stopRec();if(same)return}
+  if(!SR){ta.focus();hint.textContent='Tap the microphone on the iPad keyboard and speak.';return}
+  rec=new SR();rec.lang='en-IE';rec.continuous=true;rec.interimResults=true;
+  let base=ta.value&&!/\s$/.test(ta.value)?ta.value+(ta.dataset.s?'\n':' '):ta.value;
+  rec.onresult=e=>{let fin='',mid='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)fin+=t;else mid+=t}
+    if(fin){let f=fin.trim();if(f){f=f.replace(/^./,c=>c.toUpperCase());if(!/[.!?:]$/.test(f))f+='.';base+=f+(ta.dataset.s?'\n':' ')}}
+    ta.value=base+mid;onText(ta.value)};
+  rec.onerror=e=>{const msg=e.error==='not-allowed'||e.error==='service-not-allowed'?'The microphone isn’t allowed here. Tap in the box and use the microphone on the iPad keyboard instead.':'Dictation stopped. Tap Dictate to carry on.';stopRec();hint.textContent=msg};
+  rec.onend=()=>{if(recOn){try{rec.start()}catch(e){stopRec()}}};
+  try{rec.start();recOn=true;recBtn=btn;recDone=onStop||null;btn.setAttribute('aria-pressed','true');btn.textContent='■ Stop';hint.textContent='Listening… tap Stop when you’re finished.'}
+  catch(e){ta.focus();hint.textContent='Tap the microphone on the iPad keyboard and speak.'}}
+$('mic-all').onclick=()=>dictate($('all'),$('mic-all'),v=>{N.all=v;save()},()=>{if($('all').value.trim())sortAll()});
+
+/* ---------- sort dictated text into sections ---------- */
+let undo=null;
+const clean=s=>s.toLowerCase().replace(/^(heading|section|new section)\s+/,'').replace(/[.:;,!?\s]+$/,'').replace(/\s+/g,' ').trim();
+function headingOf(s){const c=clean(s);for(const [k,a] of Object.entries(HEADINGS))if(a.includes(c))return{k,rest:''};
+  const m=s.match(/^\s*([A-Za-z\- ]{3,40}?)\s*(?::|\bcolon\b|\s-\s)\s*(.+)$/i);
+  if(m){const h=clean(m[1]);for(const [k,a] of Object.entries(HEADINGS))if(a.includes(h)&&(h.includes(' ')||k==='procedure'))return{k,rest:m[2].trim(),named:true}}
+  const lc=s.toLowerCase().trim();
+  for(const [k,a] of Object.entries(LONG_HEADINGS))for(const h of a)if(lc.startsWith(h+' ')||lc.startsWith(h+','))return{k,rest:s.trim().slice(h.length).replace(/^[\s,.:-]+/,'')};
+  return null}
+function fieldOf(s){
+  let m=s.match(/^\s*(next appointment|areas? treated|treatment areas?)\s*(?::|\bcolon\b|\bis\b|\bwas\b|\bwill be\b|\s-\s|,)?\s*(.+)$/i);
+  if(!m)m=s.match(/^\s*(product(?: name| used)?)\s*(?::|\bcolon\b|\bis\b|\bwas\b|\s-\s)\s*(.+)$/i);
+  if(!m)return null;const w=m[1].toLowerCase();let v=m[2].trim();if(!/\b[ap]\.m\.$/i.test(v))v=v.replace(/[.]+$/,'');if(!v)return null;
+  if(w.startsWith('product'))return{f:'product',v};if(w.includes('area'))return{f:'areas',v};return{f:'next',v}}
+const tidy=s=>{s=s.trim().replace(/\s+/g,' ');if(!s)return '';s=s.replace(/^./,c=>c.toUpperCase());if(!/[.!?:]$/.test(s))s+='.';return s};
+function sortAll(){
+  const raw=$('all').value;if(!raw.trim()){$('mic-hint').textContent='Nothing to sort yet.';return}
+  undo=JSON.parse(JSON.stringify({s:N.s,procName:N.procName,product:N.product,areas:N.areas,next:N.next,contentOn:N.contentOn,all:N.all}));
+  const text=raw.replace(/\b(next point|new point|new line|next line|new bullet|next bullet)\b[.,]?/gi,'\n');
+  const parts=text.split(/\n+|(?<=[.!?])\s+(?=[A-Za-z0-9])/).map(s=>s.trim()).filter(Boolean);
+  let cur='decision';const add={};const counts={};
+  for(let p of parts){
+    const h=headingOf(p);
+    if(h){cur=h.k;if(h.k==='content')N.contentOn=true;if(!h.rest)continue;
+      if(h.k==='procedure'&&h.named){N.procName=h.rest.replace(/[.]+$/,'');continue}
+      p=h.rest}
+    const f=fieldOf(p);
+    if(f){N[f.f]=f.v;if(f.f==='next')cur='plan';continue}
+    const line=tidy(p);if(!line)continue;(add[cur]=add[cur]||[]).push(line);counts[cur]=(counts[cur]||0)+1}
+  for(const [k,lines] of Object.entries(add)){const old=(N.s[k]||'').replace(/\s+$/,'');N.s[k]=(old?old+'\n':'')+lines.join('\n')}
+  N.all='';$('all').value='';renderSections();save();
+  const names=SECTIONS.filter(s=>counts[s.k]).map(s=>s.t);
+  $('mic-hint').textContent=names.length?'Sorted into: '+names.join(', ')+'. Check the words below.':'Sorted. Check the sections below.';
+  $('undo-sort').hidden=false}
+$('sort').onclick=()=>{if(recOn)stopRec();else sortAll()};
+$('undo-sort').onclick=()=>{if(!undo)return;Object.assign(N,undo);undo=null;$('all').value=N.all;renderSections();save();$('undo-sort').hidden=true;$('mic-hint').textContent='Sort undone. Your words are back in the box.'};
+
+/* ---------- photos (resized on the iPad, kept on the iPad) ---------- */
+$('photo-in').onchange=async e=>{const files=[...e.target.files];e.target.value='';
+  for(const f of files){try{N.photos.push({data:await shrink(f,1600),cap:''})}catch(err){$('status').textContent='One photo couldn’t be read.'}}
+  renderPhotos();save()};
+function shrink(file,max){return new Promise((res,rej)=>{const url=URL.createObjectURL(file);const im=new Image();
+  im.onload=()=>{const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',0.86))};
+  im.onerror=()=>{URL.revokeObjectURL(url);rej()};im.src=url})}
+
+/* ---------- clinician details + signature (saved on this iPad) ---------- */
+$('me-name').value=ME.name;$('me-role').value=ME.role;$('me-imc').value=ME.imc;$('sig-keep').checked=ME.keep;
+$('me-name').oninput=e=>{ME.name=e.target.value;saveMe();made=null};$('me-role').oninput=e=>{ME.role=e.target.value;saveMe();made=null};$('me-imc').oninput=e=>{ME.imc=e.target.value;saveMe();made=null};
+const sig=$('sig');let sctx=null,drawing=false,hasSig=false;
+function sizeSig(){const r=sig.getBoundingClientRect();if(!r.width)return;const w=Math.round(r.width*2),h=Math.round(r.height*2);if(sig.width===w&&sig.height===h&&sctx)return;
+  sig.width=w;sig.height=h;sctx=sig.getContext('2d');sctx.lineWidth=4;sctx.lineCap='round';sctx.lineJoin='round';sctx.strokeStyle='#00167A';hasSig=false;
+  const src=N.sig||(ME.keep?ME.sig:null);if(src){const im=new Image();im.onload=()=>{const k=Math.min(w/im.width,h/im.height,1);sctx.drawImage(im,(w-im.width*k)/2,(h-im.height*k)/2,im.width*k,im.height*k);hasSig=true};im.src=src}}
+const pt=e=>{const r=sig.getBoundingClientRect();return[(e.clientX-r.left)*2,(e.clientY-r.top)*2]};
+sig.addEventListener('pointerdown',e=>{sizeSig();drawing=true;sig.setPointerCapture(e.pointerId);const [x,y]=pt(e);sctx.beginPath();sctx.moveTo(x,y);sctx.lineTo(x+.1,y+.1);sctx.stroke();hasSig=true});
+sig.addEventListener('pointermove',e=>{if(!drawing)return;const [x,y]=pt(e);sctx.lineTo(x,y);sctx.stroke()});
+const endSig=()=>{if(!drawing)return;drawing=false;const c=trimSig();const d=c?c.toDataURL('image/png'):null;N.sig=d;if(ME.keep){ME.sig=d;saveMe()}save()};
+sig.addEventListener('pointerup',endSig);sig.addEventListener('pointercancel',endSig);
+$('sig-clear').onclick=()=>{sctx&&sctx.clearRect(0,0,sig.width,sig.height);hasSig=false;N.sig=null;if(ME.sig){ME.sig=null;saveMe()}save()};
+$('sig-keep').onchange=e=>{ME.keep=e.target.checked;ME.sig=ME.keep?(N.sig||ME.sig):null;saveMe()};
+function trimSig(){if(!hasSig||!sctx)return null;const d=sctx.getImageData(0,0,sig.width,sig.height).data;let x0=sig.width,y0=sig.height,x1=0,y1=0;
+  for(let y=0;y<sig.height;y+=2)for(let x=0;x<sig.width;x+=2){if(d[(y*sig.width+x)*4+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
+  if(x1<=x0)return null;const c=document.createElement('canvas');c.width=x1-x0+8;c.height=y1-y0+8;c.getContext('2d').drawImage(sig,x0-4,y0-4,c.width,c.height,0,0,c.width,c.height);return c}
+new ResizeObserver(()=>sizeSig()).observe(sig);
+
+/* ---------- build the A4 pages ---------- */
+const FOOT='Kora Lawler Aesthetics · Doctor-led aesthetics &amp; skincare · Unit 20, Groody Neighbourhood Centre, Castletroy, Limerick V94 K588<br>085 183 3428 · info@thekoralawlerclinic.ie · thekoralawlerclinic.ie';
+function lines(t){return String(t||'').split('\n').map(s=>s.trim()).filter(Boolean)}
+function lineBlocks(t){return lines(t).map(l=>{l=l.replace(/^[-•*·]\s*/,'');return /:$/.test(l)?`<p class="pl">${esc(l)}</p>`:`<div class="bl"><i></i><span>${esc(l)}</span></div>`})}
+function title(){return N.entry==='addendum'?'Addendum to clinical record':'Clinical record note'}
+function blocks(at){
+  const B=[];const add=(html,keep)=>B.push({html,keep:!!keep});
+  const pat=N.patient.trim()||'—';
+  add(`<div class="hd"><img src="inv/logo.png" alt=""><div><div class="ey">Kora Lawler Aesthetics · Clinical record</div><h1>${title()}</h1>
+    <div class="cf">Confidential · Patient ${esc(pat)}${N.date?' · Consultation '+esc(longDate(N.date)):''}</div></div></div>`);
+  const rows=[['Patient',pat],['Date of consultation',longDate(N.date)+(N.time?', '+N.time:'')],['Date of entry',longDate(at.date)],
+    ['Clinician',[ME.name,ME.role].filter(Boolean).join(', ')],
+    ['Entry type',N.entry==='addendum'?'Addendum to clinical record of '+shortDate(N.date):'Clinical record note']];
+  if(N.entry==='addendum'&&N.delay.trim())rows.push(['Reason for delay',N.delay.trim()]);
+  if(N.consent)rows.push(['Consent','Verbal and written consent obtained before proceeding']);
+  add(`<div class="tb">${rows.map(r=>`<div class="r"><span>${esc(r[0])}</span><span>${esc(r[1])}</span></div>`).join('')}</div>`);
+  for(const sec of SECTIONS){
+    if(sec.optional&&!N.contentOn)continue;
+    let body=lineBlocks(N.s[sec.k]);
+    if(sec.k==='procedure'){const kv=[];if(N.product.trim())kv.push(`<p class="kv"><b>Product:</b> ${esc(N.product.trim())}</p>`);if(N.areas.trim())kv.push(`<p class="kv"><b>Areas treated:</b> ${esc(N.areas.trim())}</p>`);body=kv.concat(body)}
+    if(sec.k==='routine'&&N.videoSent)body.push(`<div class="bl"><i></i><span>Personalised skincare routine video made and sent to patient.</span></div>`);
+    const nextBox=sec.k==='plan'&&N.next.trim()?`<div class="na"><b>Next appointment:</b> ${esc(N.next.trim())}</div>`:'';
+    if(!body.length&&!nextBox&&!(sec.k==='procedure'&&N.procName.trim()))continue;
+    const head=sec.k==='procedure'&&N.procName.trim()?'Procedure: '+N.procName.trim():sec.t;
+    add(`<div class="sh">${esc(head)}</div>`,true);
+    body.forEach(h=>add(h));if(nextBox)add(nextBox)}
+  if(N.photos.length){
+    add(`<div class="sh">Clinical photographs</div>`,true);
+    add(`<p class="pl">For the clinical record only${N.photoConsent?'. Photo consent confirmed':''}.</p>`,true);
+    for(let i=0;i<N.photos.length;i+=2){const pair=N.photos.slice(i,i+2);
+      add(`<div class="prow">${pair.map(p=>{const s=fit(p,pair.length===1?420:330,300);return `<figure><img src="${p.data}" width="${s.w}" height="${s.h}" style="width:${s.w}px;height:${s.h}px">${p.cap?`<figcaption>${esc(p.cap)}</figcaption>`:''}</figure>`}).join('')}</div>`)}}
+  const sg=N.sig||(ME.keep?ME.sig:null);
+  add(`<div class="sg"><div class="c"><div class="v">${sg?`<img src="${sg}" style="max-height:58px;max-width:210px">`:''}</div><div class="l">Signed: ${esc(ME.name)}</div></div>
+    <div class="c"><div class="v">${esc(ME.imc)}</div><div class="l">Medical Council registration no.</div></div>
+    <div class="c"><div class="v">${esc(shortDate(at.date))} · ${esc(at.time)}</div><div class="l">Date / time of entry</div></div></div>`);
+  return B}
+const DIMS=new Map();
+function fit(p,mw,mh){const d=DIMS.get(p.data)||{w:4,h:3};const k=Math.min(mw/d.w,mh/d.h);return{w:Math.round(d.w*k),h:Math.round(d.h*k)}}
+async function loadDims(){for(const p of N.photos){if(DIMS.has(p.data))continue;await new Promise(r=>{const im=new Image();im.onload=()=>{DIMS.set(p.data,{w:im.naturalWidth,h:im.naturalHeight});r()};im.onerror=r;im.src=p.data})}}
+async function paginate(B){
+  const host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;';
+  host.innerHTML=`<div class="pg"><div class="bd"></div></div>`;document.body.appendChild(host);
+  const bd=host.querySelector('.bd');const els=B.map(b=>{const d=document.createElement('div');d.className='blk';d.innerHTML=b.html;bd.appendChild(d);return d});
+  await Promise.all([...bd.querySelectorAll('img')].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r})));
+  const hs=els.map(e=>e.getBoundingClientRect().height);host.remove();
+  const AVAIL=1123-44-96;const pages=[[]];let used=0;
+  for(let i=0;i<B.length;i++){let need=hs[i];if(B[i].keep&&i+1<B.length)need+=hs[i+1]+(B[i+1].keep&&i+2<B.length?hs[i+2]:0);
+    if(used>0&&used+need>AVAIL){pages.push([]);used=0}pages[pages.length-1].push(B[i].html);used+=hs[i]}
+  return pages}
+async function render(pages){
+  const out=[];
+  for(let i=0;i<pages.length;i++){const host=document.createElement('div');host.style.cssText='position:fixed;left:0;top:0;z-index:-1;pointer-events:none';
+    host.innerHTML=`<div class="pg"><div class="bd">${pages[i].map(h=>`<div class="blk">${h}</div>`).join('')}</div><div class="ft">${FOOT}</div>${pages.length>1?`<div class="pn">Page ${i+1} of ${pages.length}</div>`:''}</div>`;
+    document.body.appendChild(host);
+    await Promise.all([...host.querySelectorAll('img')].map(im=>im.complete?0:new Promise(r=>{im.onload=im.onerror=r})));
+    try{out.push(await html2canvas(host.firstElementChild,{scale:2,backgroundColor:'#FFFBF2',logging:false,scrollX:0,scrollY:-window.scrollY,windowWidth:1200,windowHeight:1400}))}
+    finally{host.remove()}}
+  return out}
+async function toPdf(canvases,title){
+  const jpgs=[];for(const c of canvases){const b=await new Promise(r=>c.toBlob(r,'image/jpeg',0.88));jpgs.push({bytes:new Uint8Array(await b.arrayBuffer()),w:c.width,h:c.height})}
+  const enc=new TextEncoder();const chunks=[];let len=0;const offs=[];
+  const add=x=>{const b=typeof x==='string'?enc.encode(x):x;chunks.push(b);len+=b.length};
+  const PW=595.28,PH=841.89,n=jpgs.length;const t=title.replace(/[()\\]/g,'').replace(/[^\x20-\x7E]/g,'');
+  add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const obj=(i,s)=>{offs[i]=len;add(i+' 0 obj\n'+s+'\nendobj\n')};
+  const kids=[];for(let i=0;i<n;i++)kids.push((3+i*3)+' 0 R');
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${n} >>`);
+  jpgs.forEach((j,i)=>{const pg=3+i*3,im=pg+1,ct=pg+2;const content=`q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;
+    obj(pg,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 ${im} 0 R >> >> /Contents ${ct} 0 R >>`);
+    offs[im]=len;add(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${j.w} /Height ${j.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${j.bytes.length} >>\nstream\n`);add(j.bytes);add('\nendstream\nendobj\n');
+    obj(ct,`<< /Length ${content.length} >>\nstream\n${content}\nendstream`)});
+  const info=3+n*3;obj(info,`<< /Title (${t}) /Author (Kora Lawler Aesthetics) /Producer (KL App) >>`);
+  const xr=len;let xref=`xref\n0 ${info+1}\n0000000000 65535 f \n`;for(let i=1;i<=info;i++)xref+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  add(xref+`trailer\n<< /Size ${info+1} /Root 1 0 R /Info ${info} 0 R >>\nstartxref\n${xr}\n%%EOF\n`);
+  return new Blob(chunks,{type:'application/pdf'})}
+
+/* ---------- make / send ---------- */
+let made=null;
+function checks(){const w=[];
+  if(!N.patient.trim())w.push('patient initials');
+  if(N.s.procedure&&N.s.procedure.trim()&&!N.consent)w.push('the consent tick');
+  if(N.photos.length&&!N.photoConsent)w.push('the photo consent tick');
+  if(!(N.sig||(ME.keep&&ME.sig)))w.push('your signature');
+  return w}
+$('make').onclick=async()=>{
+  if(recOn)stopRec();
+  const w=checks();$('checks').hidden=!w.length;$('checks').textContent=w.length?'Still empty: '+w.join(', ')+'. The PDF was made anyway; fill these in and tap Make PDF again if needed.':'';
+  $('make').disabled=true;$('status').textContent='Making the PDF…';
+  try{
+    await document.fonts.load('20px "Instrument Serif"');await document.fonts.ready;await loadDims();
+    const d=new Date();const at={date:today(),time:pad(d.getHours())+':'+pad(d.getMinutes())};
+    const pages=await paginate(blocks(at));const canvases=await render(pages);
+    const name='KL '+(N.entry==='addendum'?'Clinical Record Addendum':'Clinical Record Note')+' - '+(N.patient.trim()||'patient')+' - '+longDate(N.date||at.date).replace(/^(\d+) (\w{3})\w* /,'$1 $2 ')+'.pdf';
+    const blob=await toPdf(canvases,title()+' '+(N.patient||''));
+    made={file:new File([blob],name,{type:'application/pdf'})};
+    const pv=$('preview');pv.innerHTML='';canvases.forEach((c,i)=>{const im=new Image();im.alt='Page '+(i+1);im.src=c.toDataURL('image/jpeg',0.7);pv.appendChild(im)});
+    $('result').hidden=false;$('status').textContent='Ready: '+canvases.length+(canvases.length>1?' pages.':' page.');$('result').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){console.error(e);$('status').textContent='Couldn’t make the PDF. Please try again.'}
+  finally{$('make').disabled=false}};
+$('send').onclick=async()=>{if(!made)return;const f=made.file;
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:f.name});$('status').textContent='Done. Once it’s in Clever Clinic, tap “Saved it. Start new note”.';return}}
+  catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+  $('status').textContent='PDF downloaded. On the iPad it goes to Files › Downloads.'};
+
+/* ---------- start new note ---------- */
+let armed=0;
+async function fresh(msg){if(recOn)stopRec();N=BLANK();undo=null;$('undo-sort').hidden=true;await wipe();made=null;$('result').hidden=true;$('checks').hidden=true;$('preview').innerHTML='';
+  renderAll();sctx=null;sizeSig();$('status').textContent=msg;scrollTo({top:0,behavior:'smooth'})}
+$('new-note').onclick=()=>{const b=$('new-note');if(!armed){b.textContent='Tap again to wipe this note';armed=setTimeout(()=>{armed=0;b.textContent='Start new note'},4000);return}
+  clearTimeout(armed);armed=0;b.textContent='Start new note';fresh('New note started. The last one is wiped from this iPad.')};
+$('done-new').onclick=()=>fresh('New note started. The last one is wiped from this iPad.');
+
+/* ---------- boot ---------- */
+(async()=>{
+  try{const d=await idb('readonly',s=>s.get('draft'));
+    if(d&&Date.now()-(d.updated||0)<KEEP_MS){N=Object.assign(BLANK(),d);$('status').textContent='Your unfinished note is back.'}
+    else if(d){await wipe();$('status').textContent='An unfinished note older than 3 days was wiped.'}}catch(e){}
+  renderAll();sizeSig()})();
+})();
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}</script>
+</body></html>
