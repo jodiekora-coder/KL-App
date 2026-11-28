@@ -30,3 +30,11 @@ Order forms: tap products and amounts, then the app makes a finished PDF order f
 - Health Exchange: their own blank order form (`ord/hx-form.png`) is filled in at the right lines, with the delivery option, the unlicensed medicine statement and the prescriber's signature. The product list (`ord/hx-catalogue.js`) has codes and names from the April 2026 price list only.
 - SkinPen (Crown Aesthetics): no supplier form exists, so the app makes a Kora Lawler branded purchase order.
 - Account code, delivery address, prescriber name and all prices are NOT in this repo. They load once on the iPad from a private setup code and are stored on the device only (localStorage). Signatures are only kept if the user ticks "Keep my signature on this iPad".
+
+## Clinical notes (notes.html)
+
+Dictated clinic-only notes in the KL "Addendum to clinical record" layout, saved as an A4 PDF for Clever Clinic.
+
+- Dictate the whole note in one go; spoken headings sort the words into sections. Each section also has its own Dictate button.
+- Clinical photos, consent ticks, skincare-video tick, optional Content and paid partnership section, next appointment box.
+- Signature, name, role and Medical Council number are saved on the iPad (localStorage). Patient notes and photos are kept only on the iPad (IndexedDB) until "Start new note", and an unfinished note is wiped after 3 days. Nothing is uploaded and no patient details are in this repo.
