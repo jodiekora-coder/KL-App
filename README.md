@@ -38,3 +38,12 @@ Dictated clinic-only notes in the KL "Addendum to clinical record" layout, saved
 - Dictate the whole note in one go; spoken headings sort the words into sections. Each section also has its own Dictate button.
 - Clinical photos, consent ticks, skincare-video tick, optional Content and paid partnership section, next appointment box.
 - Signature, name, role and Medical Council number are saved on the iPad (localStorage). Patient notes and photos are kept only on the iPad (IndexedDB) until "Start new note", and an unfinished note is wiped after 3 days. Nothing is uploaded and no patient details are in this repo.
+
+## Treatment forms (forms.html)
+
+Per-treatment documents and a tick-through suitability checklist (SkinPen first). Add a treatment by adding an entry to `TREATMENTS` in forms.html and its PDFs under `forms/<treatment>/`.
+
+- Documents (aftercare, information leaflet, consent form, blank checklist) open or send from the iPad. They hold no client details.
+- The suitability checklist makes a KL-branded PDF with the practitioner's saved name, IMC number and signature (from Clinical notes). Use the client number, never the name. Answers stay on the iPad only (IndexedDB) until "Start new checklist", or 3 days. The outcome can be added to today's clinical note.
+
+Invoices can now be made as a Receipt (paid in clinic, with date and method).

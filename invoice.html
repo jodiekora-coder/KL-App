@@ -71,6 +71,9 @@ button,select,input,textarea{font:inherit;color:inherit}
 .disc{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}
 .disc button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font:600 13px var(--sans);cursor:pointer;color:var(--ink);min-height:34px}
 .disc button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.kindsel{display:flex;gap:6px;flex-wrap:wrap}
+.kindsel button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:8px 16px;font:600 14px var(--sans);cursor:pointer;color:var(--ink);min-height:38px}
+.kindsel button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 label.f{display:flex;flex-direction:column;gap:5px;font:600 12px var(--sans);color:var(--muted);min-width:0}
 label.f input,label.f select,label.f textarea{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:400 15px var(--sans);color:var(--ink);width:100%;min-width:0}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
@@ -177,6 +180,7 @@ textarea.code{width:100%;min-height:90px;font:12px/1.4 ui-monospace,Menlo,monosp
 
   <div class="side">
     <div class="card">
+      <div class="kindsel" role="group" aria-label="Invoice or receipt" id="kind" style="margin:0 0 12px"><button data-kind="invoice">Invoice</button><button data-kind="receipt">Receipt (paid)</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 id="side-h">This invoice</h2><button class="x" id="clear" style="margin:0">Clear</button></div>
       <div class="lines" id="lines"></div>
       <div class="disc" role="group" aria-label="Discount"><span class="hint">Discount</span></div>
@@ -184,6 +188,10 @@ textarea.code{width:100%;min-height:90px;font:12px/1.4 ui-monospace,Menlo,monosp
       <div class="row" style="margin-top:14px">
         <label class="f">Invoice date<input type="date" id="d-inv"></label>
         <label class="f">Date of supply<input type="date" id="d-sup"></label>
+      </div>
+      <div class="row" style="margin-top:12px" id="paid-row">
+        <label class="f">Paid on<input type="date" id="d-paid"></label>
+        <label class="f">Paid by<select id="d-method"><option>Card</option><option>Cash</option><option>Bank transfer</option><option>Gift voucher</option><option>Other</option></select></label>
       </div>
       <button class="btn primary" id="make" style="width:100%;margin-top:16px">Create invoice</button>
       <p class="hint" style="margin-top:8px;text-align:center">No client name or details go on the invoice.</p>
@@ -253,6 +261,7 @@ textarea.code{width:100%;min-height:90px;font:12px/1.4 ui-monospace,Menlo,monosp
   <span aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/></svg>Invoices</span>
   <a href="stock.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>Stock</a>
 <a href="notes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M12 9v6"/></svg>Clinical notes</a>
+<a href="forms.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4v-1h6v1M8.5 11l2 2 4-4M9 17h6"/></svg>Forms</a>
 <a href="policies.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Policies</a>
 </nav>
 
@@ -282,7 +291,9 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 const longDate=s=>{if(!s)return '';const [y,m,d]=s.split('-').map(Number);return d+' '+['January','February','March','April','May','June','July','August','September','October','November','December'][m-1]+' '+y};
 function nextNo(){return Number(get(K.next,FIRST_NO))||FIRST_NO}
 function fmtNo(n,dateStr){const y=(dateStr||today()).slice(0,4);return 'KL-'+y+'-'+String(n).padStart(4,'0')}
-function blankDraft(){return {lines:[],disc:0,inv:today(),sup:today(),no:null}}
+function blankDraft(){return {lines:[],disc:0,inv:today(),sup:today(),no:null,kind:'invoice',paidOn:today(),method:'Card'}}
+const isRec=d=>d&&d.kind==='receipt';
+const docName=d=>isRec(d)?'Receipt':'Invoice';
 function saveDraft(){put(K.draft,draft)}
 function toast(t){const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}
 
@@ -322,19 +333,21 @@ function addLine(n,p,g){
 /* ---------- current invoice ---------- */
 function totals(d){const sub=r2(d.lines.reduce((a,l)=>a+l.q*l.p,0));const off=r2(sub*(d.disc||0)/100);return {sub,off,total:r2(sub-off)}}
 function renderLines(){
-  $('side-h').textContent=draft.no?('Fixing '+fmtNo(draft.no,draft.inv)):'This invoice';
+  $('side-h').textContent=draft.no?('Fixing '+fmtNo(draft.no,draft.inv)):(isRec(draft)?'This receipt':'This invoice');
+  document.querySelectorAll('[data-kind]').forEach(b=>b.setAttribute('aria-pressed',String((draft.kind||'invoice')===b.dataset.kind)));
+  $('paid-row').hidden=!isRec(draft);$('d-paid').value=draft.paidOn||draft.inv||today();$('d-method').value=draft.method||'Card';
   if(!draft.lines.length){$('lines').innerHTML='<div class="empty">Tap items on the left to add them.</div>'}
   else $('lines').innerHTML=draft.lines.map((l,i)=>`<div class="line"><div class="nm">${esc(l.n)}</div><div class="amt">${eur(l.q*l.p)}</div>
     <div class="ctl"><span class="step"><button data-dec="${i}" aria-label="One less">−</button><output>${l.q}</output><button data-inc="${i}" aria-label="One more">+</button></span>
     <label class="price">€<input data-price="${i}" inputmode="decimal" value="${r2(l.p).toFixed(2)}" aria-label="Unit price"></label>
     <button class="x" data-del="${i}">Remove</button></div></div>`).join('');
   const t=totals(draft);
-  $('tot').innerHTML=`<div><span>Subtotal</span><span>${eur(t.sub)}</span></div>`+(draft.disc?`<div><span>Discount (${draft.disc}%)</span><span>−${eur(t.off)}</span></div>`:'')+`<div class="hint"><span>VAT</span><span>Not charged</span></div><div class="big"><span>Total due</span><span>${eur(t.total)}</span></div>`;
+  $('tot').innerHTML=`<div><span>Subtotal</span><span>${eur(t.sub)}</span></div>`+(draft.disc?`<div><span>Discount (${draft.disc}%)</span><span>−${eur(t.off)}</span></div>`:'')+`<div class="hint"><span>VAT</span><span>Not charged</span></div><div class="big"><span>${isRec(draft)?'Total paid':'Total due'}</span><span>${eur(t.total)}</span></div>`;
   const opts=[0,10,15,20];const isCustom=!opts.includes(draft.disc);
   document.querySelector('.disc').innerHTML='<span class="hint">Discount</span>'+opts.map(o=>`<button data-disc="${o}" aria-pressed="${draft.disc===o}">${o?o+'%':'None'}</button>`).join('')+`<button data-disc="other" aria-pressed="${isCustom}">${isCustom?draft.disc+'%':'Other'}</button>`;
   $('d-inv').value=draft.inv;$('d-sup').value=draft.sup;
   $('make').disabled=!draft.lines.length;
-  $('make').textContent=draft.no?'Save changes':'Create invoice';
+  $('make').textContent=draft.no?'Save changes':(isRec(draft)?'Create receipt':'Create invoice');
   $('nextno').textContent=draft.no?('Fixing: '+fmtNo(draft.no,draft.inv)):('Next: '+fmtNo(nextNo(),draft.inv));
 }
 function renderAll(){renderItems();renderLines()}
@@ -342,20 +355,20 @@ function renderAll(){renderItems();renderLines()}
 /* ---------- invoice sheet (matches the KL Invoices template) ---------- */
 function billedLine(d){const gs=new Set(d.lines.map(l=>l.g));const t=gs.has('proc')||gs.has('aes'),s=gs.has('skin');return t&&s?'In-clinic treatment and skincare':t?'In-clinic treatment':s?'In-clinic skincare purchase':'In-clinic purchase'}
 function sheetHTML(d){
-  const t=totals(d);const no=fmtNo(d.no,d.inv);const tight=d.lines.length>14?' tighter':d.lines.length>7?' tight':'';
+  const t=totals(d);const no=fmtNo(d.no,d.inv);const rec=isRec(d);const tight=d.lines.length>14?' tighter':d.lines.length>7?' tight':'';
   const rows=d.lines.map(l=>`<div class="tr${tight}"><span>${esc(l.n)}</span><span class="c">${l.q}</span><span class="r">${eur(l.p)}</span><span class="r b">${eur(l.q*l.p)}</span></div>`).join('');
   return `<div class="sheet">
-<div class="hd"><img src="inv/logo.png" alt="Kora Lawler Aesthetics"><div class="ttl"><div>Invoice</div><div>KORA LAWLER AESTHETICS</div></div></div>
+<div class="hd"><img src="inv/logo.png" alt="Kora Lawler Aesthetics"><div class="ttl"><div>${docName(d)}</div><div>KORA LAWLER AESTHETICS</div></div></div>
 <div class="cols">
 <div class="col"><h4>FROM</h4><div class="nm">Kora Lawler Aesthetics</div><div>Unit 20, Groody Neighbourhood Centre</div><div>Castletroy, Limerick V94 K588</div><div>+353 85 183 3428</div><div>thekoralawlerclinic.ie</div><div class="mut">The Kora Lawler Clinic Limited</div><div class="mut">Registered in Ireland, no. 809995</div></div>
 <div class="col"><h4>BILLED TO</h4><div class="nm">Client</div><div>${billedLine(d)}</div></div>
-<div class="col" style="gap:5px"><h4 style="margin-bottom:3px">INVOICE DETAILS</h4><div class="kv"><span class="mut">Invoice no.</span><span class="b">${no}</span></div><div class="kv"><span class="mut">Invoice date</span><span>${longDate(d.inv)}</span></div><div class="kv"><span class="mut">Date of supply</span><span>${longDate(d.sup)}</span></div><div class="kv"><span class="mut">Payment due</span><span>On receipt</span></div></div>
+<div class="col" style="gap:5px"><h4 style="margin-bottom:3px">${rec?'RECEIPT DETAILS':'INVOICE DETAILS'}</h4><div class="kv"><span class="mut">${rec?'Receipt no.':'Invoice no.'}</span><span class="b">${no}</span></div><div class="kv"><span class="mut">${rec?'Date':'Invoice date'}</span><span>${longDate(d.inv)}</span></div><div class="kv"><span class="mut">Date of supply</span><span>${longDate(d.sup)}</span></div>${rec?`<div class="kv"><span class="mut">Paid on</span><span>${longDate(d.paidOn||d.inv)}</span></div><div class="kv"><span class="mut">Paid by</span><span>${esc(d.method||'Card')}</span></div>`:'<div class="kv"><span class="mut">Payment due</span><span>On receipt</span></div>'}</div>
 </div>
 <div class="tbl"><div class="tr th"><span>DESCRIPTION</span><span class="c">QTY</span><span class="r">UNIT PRICE</span><span class="r">AMOUNT</span></div>${rows}</div>
-<div class="sum"><div><span>Subtotal</span><span>${eur(t.sub)}</span></div>${d.disc?`<div><span>Discount (${d.disc}%)</span><span>−${eur(t.off)}</span></div>`:''}<div class="vat"><span>VAT</span><span>Not charged</span></div><div class="due"><span>Total due</span><span>${eur(t.total)}</span></div></div>
+<div class="sum"><div><span>Subtotal</span><span>${eur(t.sub)}</span></div>${d.disc?`<div><span>Discount (${d.disc}%)</span><span>−${eur(t.off)}</span></div>`:''}<div class="vat"><span>VAT</span><span>Not charged</span></div>${rec?`<div class="due"><span>Total paid</span><span>${eur(t.total)}</span></div><div><span>Balance due</span><span>${eur(0)}</span></div>`:`<div class="due"><span>Total due</span><span>${eur(t.total)}</span></div>`}</div>
 <div style="flex-grow:1"></div>
-<div class="band"><div><span class="k">AMOUNT DUE</span><span class="amt">${eur(t.total)}</span><span class="sm">Payable on receipt. Please quote the invoice number as your reference.</span></div><div style="justify-content:center"><span class="k">PAYMENT DETAILS</span><span class="it">Payment details will be sent separately.</span></div></div>
-<div class="ft"><div>Thank you for choosing Kora Lawler Aesthetics.</div><div>Kora Lawler Aesthetics is a trading name of The Kora Lawler Clinic Limited, registered in Ireland, company no. 809995.</div><div>The company is not registered for VAT. No VAT has been charged on this invoice.</div><div>Unit 20, Groody Neighbourhood Centre, Castletroy, Limerick V94 K588 · +353 85 183 3428 · thekoralawlerclinic.ie</div></div>
+${rec?`<div class="band"><div><span class="k">AMOUNT PAID</span><span class="amt">${eur(t.total)}</span><span class="sm">Paid in full in clinic${d.method&&d.method!=='Other'?' by '+esc(d.method.toLowerCase()):''} on ${longDate(d.paidOn||d.inv)}. Nothing more to pay.</span></div><div style="justify-content:center"><span class="k">PAYMENT STATUS</span><span class="it">Paid. Thank you.</span></div></div>`:`<div class="band"><div><span class="k">AMOUNT DUE</span><span class="amt">${eur(t.total)}</span><span class="sm">Payable on receipt. Please quote the invoice number as your reference.</span></div><div style="justify-content:center"><span class="k">PAYMENT DETAILS</span><span class="it">Payment details will be sent separately.</span></div></div>`}
+<div class="ft"><div>Thank you for choosing Kora Lawler Aesthetics.</div><div>Kora Lawler Aesthetics is a trading name of The Kora Lawler Clinic Limited, registered in Ireland, company no. 809995.</div><div>The company is not registered for VAT. No VAT has been charged on this ${rec?'receipt':'invoice'}.</div><div>Unit 20, Groody Neighbourhood Centre, Castletroy, Limerick V94 K588 · +353 85 183 3428 · thekoralawlerclinic.ie</div></div>
 </div>`;
 }
 
@@ -374,7 +387,7 @@ function createInvoice(){
   if(!draft.lines.length)return;
   const editing=!!draft.no;
   const no=editing?draft.no:nextNo();
-  const entry={no,inv:draft.inv||today(),sup:draft.sup||draft.inv||today(),lines:draft.lines.map(l=>({...l})),disc:draft.disc||0,at:new Date().toISOString()};
+  const entry={no,inv:draft.inv||today(),sup:draft.sup||draft.inv||today(),lines:draft.lines.map(l=>({...l})),disc:draft.disc||0,at:new Date().toISOString(),kind:draft.kind||'invoice',paidOn:isRec(draft)?(draft.paidOn||draft.inv||today()):null,method:isRec(draft)?(draft.method||'Card'):null};
   entry.total=totals(entry).total;
   const i=log.findIndex(e=>e.no===no);
   if(i>=0)log[i]=entry;else log.unshift(entry);
@@ -400,7 +413,7 @@ async function makePdf(){
   const jpg=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.9));
   const bytes=new Uint8Array(await jpg.arrayBuffer());
   const no=fmtNo(shown.no,shown.inv);
-  const file=new File([pdfFromJpeg(bytes,canvas.width,canvas.height,'Invoice '+no)],no+'.pdf',{type:'application/pdf'});
+  const file=new File([pdfFromJpeg(bytes,canvas.width,canvas.height,docName(shown)+' '+no)],no+(isRec(shown)?'-receipt':'')+'.pdf',{type:'application/pdf'});
   pdfCache={no:shown.no,at:shown.at,file};return file;
 }
 function pdfFromJpeg(jpg,w,h,title){
@@ -426,7 +439,7 @@ async function sendPdf(){
     const file=await makePdf();
     const no=fmtNo(shown.no,shown.inv);
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:'Invoice '+no})}catch(e){if(e&&e.name!=='AbortError')throw e}
+      try{await navigator.share({files:[file],title:docName(shown)+' '+no})}catch(e){if(e&&e.name!=='AbortError')throw e}
       $('status').textContent=no+' ready. Sent or saved from the share menu.';
     }else{
       const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);
@@ -439,7 +452,7 @@ async function sendPdf(){
 /* ---------- log ---------- */
 function renderLog(){
   if(!log.length){$('log').innerHTML='<p class="hint" style="padding:10px 0">None yet.</p>';return}
-  $('log').innerHTML=log.slice(0,200).map((e,i)=>`<button data-log="${i}"><b>${fmtNo(e.no,e.inv)}</b><small>${esc(longDate(e.inv))} · ${e.lines.length} item${e.lines.length>1?'s':''}</small><b>${eur(e.total)}</b></button>`).join('');
+  $('log').innerHTML=log.slice(0,200).map((e,i)=>`<button data-log="${i}"><b>${fmtNo(e.no,e.inv)}${isRec(e)?' · Paid':''}</b><small>${esc(longDate(e.inv))} · ${e.lines.length} item${e.lines.length>1?'s':''}</small><b>${eur(e.total)}</b></button>`).join('');
 }
 
 /* ---------- settings + price list editor ---------- */
@@ -481,6 +494,9 @@ document.addEventListener('change',e=>{
 });
 $('d-inv').addEventListener('change',()=>{draft.inv=$('d-inv').value||today();saveDraft();renderLines()});
 $('d-sup').addEventListener('change',()=>{draft.sup=$('d-sup').value||draft.inv;saveDraft();renderLines()});
+document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{draft.kind=b.dataset.kind;if(draft.kind==='receipt'&&!draft.paidOn)draft.paidOn=draft.inv||today();if(!draft.method)draft.method='Card';saveDraft();renderLines()}));
+$('d-paid').addEventListener('change',()=>{draft.paidOn=$('d-paid').value||draft.inv;saveDraft();renderLines()});
+$('d-method').addEventListener('change',()=>{draft.method=$('d-method').value;saveDraft();renderLines()});
 $('c-add').addEventListener('click',()=>{const n=$('c-name').value.trim();const p=parseFloat($('c-price').value.replace(',','.'));if(!n||isNaN(p)){toast('Add a description and a price');return}addLine(n,r2(p),'other');$('c-name').value='';$('c-price').value='';toast('Added')});
 $('clear').addEventListener('click',()=>{draft=blankDraft();saveDraft();renderAll()});
 $('make').addEventListener('click',createInvoice);
