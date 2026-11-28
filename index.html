@@ -105,7 +105,7 @@ tr.win td{font-weight:700}
 #printout ol{list-style:none;margin:0;padding:0}
 #printout li{display:grid;grid-template-columns:7mm 16mm 1fr;gap:3mm;align-items:start;margin-bottom:3.5mm;break-inside:avoid}
 #printout .n{width:7mm;height:7mm;border-radius:50%;background:#00167A;color:#FFC83C;font:700 9pt Inter,Arial,sans-serif;display:flex;align-items:center;justify-content:center}
-#printout .im{width:16mm;height:16mm;object-fit:contain}
+#printout .im{width:16mm;height:16mm;object-fit:contain;background:#fff;border:0.4mm solid #FFC83C;border-radius:2mm;padding:1mm;box-shadow:0 0.5mm 1.5mm rgba(0,14,82,.18)}
 #printout .t{font:700 7.5pt Inter,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A6A10}
 #printout .p{font-size:13pt;line-height:1.15}
 #printout .h{font:400 9pt/1.35 Inter,Arial,sans-serif;color:#3A416A;margin-top:1mm}
@@ -116,7 +116,7 @@ tr.win td{font-weight:700}
 
 <div class="wrap">
 <header class="top">
-  <div><div class="eyebrow">Kora Lawler Aesthetics · after every skin consultation · <span id="app-version">version 21</span></div>
+  <div><div class="eyebrow">Kora Lawler Aesthetics · after every skin consultation · <span id="app-version">version 22</span></div>
   <h1>Routine Video <em>Maker</em></h1></div>
 </header>
 
@@ -229,6 +229,13 @@ function brushCircle(ctx,cx,cy,r,prog,color,width,seed){const R=rand(seed||7);ct
   const a0=-Math.PI*0.6;for(let s=0;s<5;s++){const jr=r+(R()-.5)*width*0.5;ctx.lineWidth=width*(0.25+R()*0.35);ctx.globalAlpha=0.55+R()*0.45;
     const end=a0+Math.PI*2*prog*(0.9+R()*0.1);ctx.beginPath();ctx.arc(cx+(R()-.5)*4,cy+(R()-.5)*4,jr,a0+R()*0.08,end);ctx.stroke()}ctx.restore()}
 function drawContain(ctx,img,x,y,w,h){if(!img)return;const s=Math.min(w/img.width,h/img.height);const dw=img.width*s,dh=img.height*s;ctx.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh)}
+// product photos sit on a white rounded card with a thin gold border and soft shadow, so cream or white packaging never blends into the slide
+function drawProduct(ctx,img,x,y,w,h){if(!img)return;const p=Math.max(6,Math.round(Math.min(w,h)*0.08));const s=Math.min((w-2*p)/img.width,(h-2*p)/img.height);const dw=img.width*s,dh=img.height*s;
+  const cw=dw+2*p,ch=dh+2*p,cx=x+(w-cw)/2,cy=y+(h-ch)/2,r=Math.min(cw,ch)*0.09;
+  ctx.save();ctx.beginPath();if(ctx.roundRect)ctx.roundRect(cx,cy,cw,ch,r);else ctx.rect(cx,cy,cw,ch);
+  ctx.shadowColor='rgba(0,14,82,0.22)';ctx.shadowBlur=Math.max(6,Math.min(w,h)*0.08);ctx.shadowOffsetY=Math.max(2,Math.min(w,h)*0.025);ctx.fillStyle='#FFFFFF';ctx.fill();
+  ctx.shadowColor='transparent';ctx.lineWidth=Math.max(1.5,Math.min(w,h)*0.012);ctx.strokeStyle='#FFC83C';ctx.stroke();ctx.restore();
+  ctx.drawImage(img,cx+p,cy+p,dw,dh)}
 function placeholder(ctx,x,y,w,h,label,dark){// generic bottle
   ctx.save();const bw=Math.min(w*0.42,h*0.34),bh=Math.min(h*0.8,bw*2.3);const bx=x+(w-bw)/2,by=y+(h-bh)/2+bh*0.08;
   ctx.fillStyle=dark?C.gold:C.navy;rr(ctx,bx+bw*0.3,by-bh*0.14,bw*0.4,bh*0.18,8);ctx.fill();
@@ -289,7 +296,7 @@ const A={bg(ctx){ctx.fillStyle=C.navy;ctx.fillRect(0,0,W,H);const g=ctx.createRa
     ctx.save();ctx.globalAlpha*=eo(k(t,1.1,1.6));text(ctx,st.how,540,1420,{font:serif(54,true),color:C.cream,align:'center',maxW:860,lh:66});ctx.restore();ctx.restore();return}
   const hasNow=st.kind==='swap'&&st.now;
   if(hasNow){const a=eo(k(t,.4,.8));ctx.save();ctx.globalAlpha*=a*(1-0.45*k(t,1.3,1.8));rr(ctx,90,y,900,150,30);ctx.fillStyle='rgba(255,251,242,.10)';ctx.fill();
-    if(P.img[st.nowImg])drawContain(ctx,P.img[st.nowImg],115,y+15,120,120);
+    if(P.img[st.nowImg])drawProduct(ctx,P.img[st.nowImg],115,y+15,120,120);
     text(ctx,'NOW',(P.img[st.nowImg]?260:130),y+58,{font:sans(24,700),color:C.gold,ls:5});ctx.font=serif(52);const nw=Math.min(ctx.measureText(st.now).width,680);
     text(ctx,st.now,(P.img[st.nowImg]?260:130),y+118,{font:serif(52),color:C.cream});strike(ctx,(P.img[st.nowImg]?255:125),y+102,nw+12,eo(k(t,1.2,1.6)),C.gold);ctx.restore();
     arrowDown(ctx,540,y+170,y+290,eo(k(t,1.4,1.9)),C.gold,12);y+=310}else y+=40;
@@ -297,7 +304,7 @@ const A={bg(ctx){ctx.fillStyle=C.navy;ctx.fillRect(0,0,W,H);const g=ctx.createRa
   const pa=eb(k(t,hasNow?1.7:.6,hasNow?2.3:1.2));const ch=hasNow?560:700;ctx.save();ctx.globalAlpha*=cl(pa);ctx.translate(540,y+ch/2);ctx.scale(lerp(.85,1,pa),lerp(.85,1,pa));ctx.translate(-540,-(y+ch/2));
   rr(ctx,90,y,900,ch,44);ctx.fillStyle=C.cream;ctx.fill();
   text(ctx,stepLabel(st).toUpperCase(),140,y+72,{font:sans(26,700),color:C.navy,ls:5});
-  const im=P.img[st.img];const ih=ch-250;if(im)drawContain(ctx,im,560,y+40,400,ch-80);else placeholder(ctx,560,y+40,400,ch-80,'kl');
+  const im=P.img[st.img];const ih=ch-250;if(im)drawProduct(ctx,im,560,y+40,400,ch-80);else placeholder(ctx,560,y+40,400,ch-80,'kl');
   text(ctx,st.product,140,y+160,{font:serif(68),color:C.navy,maxW:420,lh:70});ctx.restore();
   // how line
   ctx.save();ctx.globalAlpha*=eo(k(t,hasNow?2.4:1.3,hasNow?2.9:1.8));const hy=y+ch+90;rr(ctx,90,hy-60,900,2,1);
@@ -313,7 +320,7 @@ const A={bg(ctx){ctx.fillStyle=C.navy;ctx.fillRect(0,0,W,H);const g=ctx.createRa
   let y=520;for(const tm of ['am','pm']){const steps=P.plan.steps.filter(x=>x.time===tm);if(!steps.length)continue;
    ctx.save();ctx.globalAlpha=eo(k(t,tm==='am'?.2:.8,tm==='am'?.7:1.3));rr(ctx,80,y,920,110+steps.length*150,36);ctx.fillStyle='rgba(255,251,242,.08)';ctx.fill();
    if(tm==='am')sun(ctx,150,y+62,20,C.gold,0);else moon(ctx,150,y+62,26,C.gold,'#13287F');text(ctx,timeName(tm),200,y+82,{font:serif(64),color:C.gold});
-   steps.forEach((st,i)=>{const yy=y+130+i*150;const im=P.img[st.img];if(st.kind==='rx')rxIcon(ctx,170,yy+55,110,C.gold);else if(im)drawContain(ctx,im,120,yy,110,110);else placeholder(ctx,120,yy,110,110,'kl',true);
+   steps.forEach((st,i)=>{const yy=y+130+i*150;const im=P.img[st.img];if(st.kind==='rx')rxIcon(ctx,170,yy+55,110,C.gold);else if(im)drawProduct(ctx,im,120,yy,110,110);else placeholder(ctx,120,yy,110,110,'kl',true);
     text(ctx,(i+1)+'. '+st.title,260,yy+42,{font:sans(26,700),color:C.gold,ls:3});text(ctx,st.product,260,yy+95,{font:serif(48),color:C.cream,maxW:700})});
    ctx.restore();y+=150+steps.length*150}},
  outro(ctx,t,s,P){A.bg(ctx);const a=eo(k(t,0,.6));ctx.save();ctx.globalAlpha=a;if(P.img.mono_gold)drawContain(ctx,P.img.mono_gold,390,560,300,300);
@@ -327,7 +334,7 @@ const B={bg(ctx,tm){const dark=tm==='pm';ctx.fillStyle=dark?C.navy:C.cream;ctx.f
   text(ctx,'Your skincare routine',205,125,{font:serif(52),color:dark?C.cream:C.navy});text(ctx,'KORA LAWLER AESTHETICS',207,172,{font:sans(22,600),color:dark?C.gold:C.navy,ls:5})},
  shelf(ctx,P,tm,done,cur,curA,dark){const steps=P.plan.steps.filter(x=>x.time===tm);const xs=shelfLayout(steps.length);const y=1630;
   ctx.save();ctx.fillStyle=dark?'rgba(255,200,60,.9)':C.navy;rr(ctx,70,y+190,940,14,7);ctx.fill();
-  steps.forEach((st,i)=>{const x=xs[i];if(i<done||(i===cur&&curA>=1)){const im=P.img[st.img];if(st.kind==='rx')rxIcon(ctx,x,y+110,150,dark?C.gold:C.navy);else if(im)drawContain(ctx,im,x-90,y+10,180,180);else placeholder(ctx,x-90,y+10,180,180,'kl',dark)}
+  steps.forEach((st,i)=>{const x=xs[i];if(i<done||(i===cur&&curA>=1)){const im=P.img[st.img];if(st.kind==='rx')rxIcon(ctx,x,y+110,150,dark?C.gold:C.navy);else if(im)drawProduct(ctx,im,x-90,y+10,180,180);else placeholder(ctx,x-90,y+10,180,180,'kl',dark)}
    else{ctx.setLineDash([10,12]);ctx.strokeStyle=dark?'rgba(255,251,242,.35)':'rgba(0,22,122,.3)';ctx.lineWidth=3;rr(ctx,x-70,y+30,140,150,24);ctx.stroke();ctx.setLineDash([]);
     text(ctx,String(i+1),x,y+125,{font:serif(64),color:dark?'rgba(255,251,242,.5)':'rgba(0,22,122,.4)',align:'center'})}
    if(i===cur){ctx.strokeStyle=C.gold;ctx.lineWidth=6;ctx.beginPath();ctx.arc(x,y+240,10,0,7);ctx.stroke()}});ctx.restore();return{xs,y}},
@@ -347,14 +354,14 @@ const B={bg(ctx,tm){const dark=tm==='pm';ctx.fillStyle=dark?C.navy:C.cream;ctx.f
   const ha=eb(k(t,0,.6));const out=1-fly;ctx.save();ctx.globalAlpha=out;ctx.fillStyle=dark?'rgba(255,200,60,.16)':'rgba(255,200,60,.35)';ctx.beginPath();ctx.arc(540,760,300*ha,0,7);ctx.fill();ctx.restore();
   const tx=lerp(540,sh.xs[s.i],fly),ty=lerp(760,sh.y+100,fly),sc=lerp(1,180/440,fly);const im=P.img[st.img];
   ctx.save();ctx.globalAlpha=cl(ha);ctx.translate(tx,ty+lerp(80,0,eo(k(t,0,.6))));ctx.scale(sc,sc);
-  if(st.kind==='rx')rxIcon(ctx,0,0,360,dark?C.gold:C.navy);else if(im)drawContain(ctx,im,-220,-220,440,440);else placeholder(ctx,-220,-220,440,440,'kl',dark);ctx.restore();
+  if(st.kind==='rx')rxIcon(ctx,0,0,360,dark?C.gold:C.navy);else if(im)drawProduct(ctx,im,-220,-220,440,440);else placeholder(ctx,-220,-220,440,440,'kl',dark);ctx.restore();
   ctx.save();ctx.globalAlpha=eo(k(t,.3,.8))*out;
   text(ctx,('Step '+(s.i+1)+' · '+st.title).toUpperCase(),540,1150,{font:sans(28,700),color:dark?C.gold:C.navy,align:'center',ls:5});
   const nl=lineCount(ctx,st.product,serif(76),900);text(ctx,st.product,540,1240,{font:serif(76),color:ink,align:'center',maxW:900,lh:80});
   let yy=1240+nl*80;
   if(st.kind==='swap'&&st.now){const ni=P.img[st.nowImg];ctx.font=serif(44);const lbl=st.now;const lw=ctx.measureText(lbl).width;const w=lw+(ni?250:200);ctx.save();ctx.globalAlpha*=eo(k(t,.9,1.3));
     rr(ctx,540-w/2,yy-44,w,92,46);ctx.fillStyle=C.gold;ctx.fill();let x=540-w/2+36;text(ctx,'SWAP',x,yy+12,{font:sans(24,700),color:C.navy,ls:3});x+=100;
-    if(ni){drawContain(ctx,ni,x,yy-34,64,72);x+=74}text(ctx,lbl,x,yy+14,{font:serif(44),color:C.navy});strike(ctx,x-4,yy+2,lw+8,eo(k(t,1.3,1.7)),C.navy);ctx.restore();yy+=110}
+    if(ni){drawProduct(ctx,ni,x,yy-34,64,72);x+=74}text(ctx,lbl,x,yy+14,{font:serif(44),color:C.navy});strike(ctx,x-4,yy+2,lw+8,eo(k(t,1.3,1.7)),C.navy);ctx.restore();yy+=110}
   else if(st.kind==='keep'||st.kind==='new'){const lbl=st.kind==='keep'?'KEEP USING':'NEW STEP';ctx.font=sans(24,700);const w=ctx.measureText(lbl).width+80;ctx.save();ctx.globalAlpha*=eo(k(t,.9,1.3));rr(ctx,540-w/2,yy-34,w,64,32);ctx.fillStyle=C.gold;ctx.fill();text(ctx,lbl,540,yy+8,{font:sans(24,700),color:C.navy,align:'center',ls:3});ctx.restore();yy+=90}
   ctx.save();ctx.globalAlpha*=eo(k(t,1.3,1.8));text(ctx,st.how,540,yy+30,{font:serif(48,true),color:ink,align:'center',maxW:880,lh:58});ctx.restore();ctx.restore()},
  advice(ctx,t,s,P){B.bg(ctx,'am');B.header(ctx,P,false);text(ctx,'My advice for you',540,500,{font:serif(104),color:C.navy,align:'center'});
@@ -366,7 +373,7 @@ const B={bg(ctx,tm){const dark=tm==='pm';ctx.fillStyle=dark?C.navy:C.cream;ctx.f
   text(ctx,'SCREENSHOT YOUR SHELVES',540,330,{font:sans(28,700),color:C.navy,align:'center',ls:6});
   for(const tm of ['am','pm']){const steps=P.plan.steps.filter(x=>x.time===tm);const dark=tm==='pm';const by=dark?H/2+80:420;const a=eo(k(t,dark?.6:.1,dark?1.1:.6));ctx.save();ctx.globalAlpha=a;
    if(tm==='am')sun(ctx,130,by+40,22,C.gold,0);else moon(ctx,130,by+40,28,C.gold,C.navy);text(ctx,timeName(tm),180,by+62,{font:serif(70),color:dark?C.cream:C.navy});
-   const xs=shelfLayout(steps.length);steps.forEach((st,i)=>{const im=P.img[st.img];const x=xs[i];if(st.kind==='rx')rxIcon(ctx,x,by+260,150,dark?C.gold:C.navy);else if(im)drawContain(ctx,im,x-100,by+150,200,220);else placeholder(ctx,x-100,by+150,200,220,'kl',dark);
+   const xs=shelfLayout(steps.length);steps.forEach((st,i)=>{const im=P.img[st.img];const x=xs[i];if(st.kind==='rx')rxIcon(ctx,x,by+260,150,dark?C.gold:C.navy);else if(im)drawProduct(ctx,im,x-100,by+150,200,220);else placeholder(ctx,x-100,by+150,200,220,'kl',dark);
     text(ctx,(i+1)+'. '+st.title,x,by+430,{font:sans(26,700),color:dark?C.gold:C.navy,align:'center'});text(ctx,st.short||st.product,x,by+480,{font:serif(40),color:dark?C.cream:C.navy,align:'center',maxW:900/steps.length-20,lh:44})});
    ctx.fillStyle=dark?C.gold:C.navy;rr(ctx,70,by+385,940,10,5);ctx.fill();ctx.restore()}},
  outro(ctx,t,s,P){B.bg(ctx,'am');const a=eo(k(t,0,.6));ctx.save();ctx.globalAlpha=a;if(P.img.mono_navy)drawContain(ctx,P.img.mono_navy,390,560,300,300);
@@ -584,13 +591,13 @@ async function addPhoto(e){const f=e.target.files[0];if(!f)return;status('Prepar
       dlg.close();status('Filled in from the card: '+card.product+'. Check the details.');pickCb&&pickCb(id,card);return}}catch(err){status('That card couldn’t be read, so it was saved as a plain photo. Type the product name in.')}}const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f)});
   const im=await toImg(url);e.target.value='';if(!im){status('That photo couldn’t be opened. Try another one.');return}
   let c=document.createElement('canvas');const s=Math.min(1,520/Math.max(im.width,im.height));c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-  cutout(c);c=trim(c);
+  // keep the photo's own background: it now sits on a white card in the video, so cream packaging no longer disappears
   let data=c.toDataURL('image/webp',0.86);if(!data.startsWith('data:image/webp'))data=c.toDataURL('image/png');
   // a plain product photo: try reading the label to work out which product it is
   let info=null;if(!($('#pick-name').value||'').trim()&&window.KLFill&&KLFill.matchPhoto){try{status('Reading the label…');info=await KLFill.matchPhoto(f,allProducts())}catch(err){}}
   const id='u'+Date.now();const nm=(info&&info.product)||($('#pick-name').value||'').trim()||('My product '+(LIB.length+1));
   LIB=LIB.filter(x=>x.name.toLowerCase()!==nm.toLowerCase());
-  IMG[id]=await toImg(data);LIB.push({id,name:nm,short:(info&&info.short)||shortOf(nm),how:(info&&info.how)||'',step:(info&&info.title)||'',data});saveLib();renderLists();dlg.close();status(info?'Recognised '+nm+' from the label. Check the details.':'Photo saved as “'+nm+'”. Type the product name in.');pickCb&&pickCb(id,info)}
+  IMG[id]=await toImg(data);LIB.push({id,name:nm,short:(info&&info.short)||shortOf(nm),how:(info&&info.how)||'',step:(info&&info.title)||'',data});saveLib();renderLists();dlg.close();status(info&&info.guess?'Read from the label: “'+nm+'”. It isn’t in your product list yet, so add the brand if it’s missing and check the step and how-to.':info?'Recognised '+nm+' from the label. Check the details.':'Photo saved as “'+nm+'”. Type the product name in.');pickCb&&pickCb(id,info)}
 $('#upload').addEventListener('change',addPhoto);$('#snap').addEventListener('change',addPhoto);
 // ---------- preview ----------
 function loop(t0,s0){const go=now=>{if(!playing)return;T=s0+(now-t0)/1000;if(T>=R.total){T=R.total-0.01;playing=false;$('#play').textContent='▶ Play';draw();return}draw();raf=requestAnimationFrame(go)};raf=requestAnimationFrame(go)}

@@ -184,7 +184,14 @@ async function readCard(file,onProgress){const raw=await loadCanvas(file,2200);c
 // a plain photo of one product: match all the label text at once against the product list
 async function matchPhoto(file,products){const text=await readPhoto(file,()=>{});const lt=toks(text);let best=null,bs=0;
   for(const p of products){if(/^My product \d+$/.test(p.name))continue;const sc=scoreProduct(p,lt);if(sc>bs+0.001||(Math.abs(sc-bs)<=0.001&&best&&p.name.length>best.name.length)){bs=sc;best=p}}
-  if(!best||bs<0.6)return null;return {product:best.name,short:best.short||shortOf(best.name),how:best.how||'',title:best.step||guessStep(best.name),img:best.id||null,conf:bs>=0.95?'match':'close'}}
+  if(!best||bs<0.6)return guessFromLabel(text);return {product:best.name,short:best.short||shortOf(best.name),how:best.how||'',title:best.step||guessStep(best.name),img:best.id||null,conf:bs>=0.95?'match':'close'}}
+// not in the product list: suggest a name from the biggest, capitalised lines at the top of the label (e.g. "Skin Relief Moisturising Lotion")
+function guessFromLabel(text){const lines=String(text||'').split(/\n+/).map(l=>l.replace(/[^A-Za-z0-9&'+\- ]+/g,' ').replace(/\s+/g,' ').trim()).filter(l=>{const letters=(l.match(/[A-Za-z]/g)||[]).length;return letters>=4&&letters/l.length>.7});
+  if(!lines.length)return null;const caps=l=>l===l.toUpperCase()||l.split(' ').every(w=>!/^[a-z]/.test(w));
+  let pick=[];for(const l of lines.slice(0,6)){if(caps(l)){pick.push(l);if(pick.length===2)break}else if(pick.length)break}
+  if(!pick.length)pick=[lines[0]];
+  const name=pick.join(' ').toLowerCase().replace(/\b([a-z])/g,c=>c.toUpperCase()).replace(/\bSpf\b/g,'SPF').split(' ').slice(0,6).join(' ');
+  if(name.length<4)return null;return {product:name,short:shortOf(name),how:'',title:guessStep(name)||guessStep(text),img:null,conf:'new',guess:true}}
 Object.assign(window.KLFill,{readCard,matchPhoto,parseCard,isCard,loadCanvas,findCard,cardHash});
 const ORDER=['Oil cleanse','Cleanse','Exfoliate','Toner','Essence','Serum','Treat','Eye cream','Moisturise','SPF','Mask'];
 
